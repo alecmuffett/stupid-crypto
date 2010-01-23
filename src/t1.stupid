@@ -1,0 +1,7 @@
+# This code adapted from Wikipedia pseudocode
+
+# Note 2: All constants in this pseudo code are in big endian
+
+# Initialize variables
+# (first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):
+uint32 h0 = 0x6a09e667
