@@ -20,6 +20,10 @@ my $ptree = $parser->YYParse(yylex => \&lexer,
 $ptree->value();
 $::Context->dumpSymbols();
 
+use Stupid::C;
+
+$ptree->emitCode();
+
 sub lexer {
     my $parser = shift;
 
@@ -141,7 +145,7 @@ package Stupid::Null;
 
 use strict;
 
-# A followed by B (as in two statements), value is B.
+# A followed by B (as in two statements). No value.
 
 sub new {
     my $class = shift;
@@ -161,7 +165,9 @@ sub value {
     my $self = shift;
 
     $self->{left}->value();
-    return $self->{right}->value();
+    $self->{right}->value();
+
+    return undef;
 }
 
 package Stupid::Set;
