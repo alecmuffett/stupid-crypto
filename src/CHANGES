@@ -1,0 +1,2 @@
+  * Fix Stupid::XOr32::emitCode.
+    [Reported by "benc"]

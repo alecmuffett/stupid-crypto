@@ -332,7 +332,7 @@ sub Stupid::XOr32::emitCode {
 
     print '(';
     $self->{left}->emitCode();
-    print ' >> ';
+    print ' ^ ';
     $self->{right}->emitCode();
     print ')';
 }

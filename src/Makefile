@@ -3,3 +3,9 @@ grammar.pm: grammar.y
 
 test: grammar.pm stupid.pl
 	./stupid.pl t1.stupid
+
+tarball:
+	tar cvfz stupid.tgz CHANGES Makefile grammar.y stupid.pl Stupid/C.pm t1.stupid
+
+push: tarball
+	scp stupid.tgz www.links.org:files
