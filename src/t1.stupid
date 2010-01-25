@@ -163,6 +163,7 @@ while(i ne32 64) {
    c = b;
    b = a;
    a = t1 plus32 t2;
+   i = i plus32 1;
 }
 
 "    Add this chunk's hash to result so far:";

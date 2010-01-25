@@ -1,2 +1,5 @@
   * Fix Stupid::XOr32::emitCode.
     [Reported by "benc"]
+
+  * Missing increment in SHA-256.
+    [Ben Laurie]
