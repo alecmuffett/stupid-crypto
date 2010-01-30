@@ -7,6 +7,9 @@
 	    Seperate test directory. Make C files build. Fix SHA-256 test bug.
 	    [Ben Laurie]
 
+	    Lots of test files.
+	    [Ben Clifford <benc@hawaga.org.uk>]
+
 25/1/2010   Fix Stupid::XOr32::emitCode.
     	    [Reported by "benc"]
 

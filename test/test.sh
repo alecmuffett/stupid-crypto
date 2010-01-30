@@ -22,3 +22,5 @@ for a in *.stupid; do
   fi
   rm ${BN}
 done
+
+exit 0

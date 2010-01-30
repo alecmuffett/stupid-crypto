@@ -1,0 +1,16 @@
+"This code adapted from Wikipedia pseudocode";
+
+"Note 2: All constants in this pseudo code are in big endian";
+
+"Initialize variables";
+"(first 32 bits of the fractional parts of the square roots of the first 8 prime
+s 2..19):";
+uint32 h0 = 0x6a09e667;
+uint32 h1 = 0xbb67ae85;
+uint32 h2 = 0x3c6ef372;
+uint32 h3 = 0xa54ff53a;
+uint32 h4 = 0x510e527f;
+uint32 h5 = 0x9b05688c;
+uint32 h6 = 0x1f83d9ab;
+uint32 h7 = 0x5be0cd19;
+

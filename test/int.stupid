@@ -1,0 +1,7 @@
+
+
+"An integer test";
+
+uint32 h0 = 0x6a09e667;
+
+
