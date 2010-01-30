@@ -1,5 +1,11 @@
-  * Fix Stupid::XOr32::emitCode.
-    [Reported by "benc"]
+30/1/2010   Add multi-language support.
+	    [Ben Laurie]
 
-  * Missing increment in SHA-256.
-    [Ben Laurie]
+	    Add Haskell support.
+	    [Ben Clifford <benc@hawaga.org.uk>]
+
+25/1/2010   Fix Stupid::XOr32::emitCode.
+    	    [Reported by "benc"]
+
+	    Missing increment in SHA-256.
+	    [Ben Laurie]

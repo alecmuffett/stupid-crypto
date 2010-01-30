@@ -5,8 +5,14 @@ use strict;
 use grammar;
 use File::Slurp;
 use Carp;
+use Getopt::Long;
 
 $| = 1;
+
+my $language;
+
+croak if !GetOptions("language=s" => \$language);
+croak "Must specify an output language" if !$language;
 
 my $sourceFile = shift;
 
@@ -20,14 +26,16 @@ my $ptree = $parser->YYParse(yylex => \&lexer,
 			     yyerror => \&yyerror,
 			     yydebug => 6);
 
-use Data::Dumper; print Data::Dumper->Dump([\$ptree]);
+use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]);
 
 #$ptree->value();
 #$::Context->dumpSymbols();
 
 my $wrapped = new Stupid::LanguageWrapper($ptree);
 
-use Stupid::C;
+#use Stupid::C;
+eval "use Stupid::$language";
+croak $@ if $@;
 
 $wrapped->emitCode();
 
@@ -38,7 +46,6 @@ sub lexer {
 
     # skip newlines
     while(substr($code, 0, 1) eq "\n") {
-	print "skip\n";
 	$code = substr($code, 1);
     }
 
@@ -80,9 +87,9 @@ sub lexer {
 	error($parser, "Can't parse");
     }
 
-    print "type = $type";
-    print " value = $value" if defined $value;
-    print "\n";
+    print STDERR "type = $type";
+    print STDERR " value = $value" if defined $value;
+    print STDERR "\n";
 
     $parser->YYData->{code} = $code;
     return ($type, $value);
