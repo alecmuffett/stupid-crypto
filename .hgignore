@@ -1,0 +1,7 @@
+.*~
+.*\.hi
+.*\.o
+src/grammar\.pm
+src/stupid\.tgz
+test/.*\.c
+test/.*\.hs

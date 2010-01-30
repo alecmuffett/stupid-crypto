@@ -33,11 +33,12 @@ use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]);
 
 my $wrapped = new Stupid::LanguageWrapper($ptree);
 
-#use Stupid::C;
 eval "use Stupid::$language";
 croak $@ if $@;
 
 $wrapped->emitCode();
+
+exit 0;
 
 sub lexer {
     my $parser = shift;

@@ -5,7 +5,13 @@ use strict;
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
+    print "#include <sys/types.h>\n";
+    print "typedef uint32_t uint32;\n";
+    print "typedef uint8_t uint8;\n";
+    print "int main() {\n";
     $self->{tree}->emitCode();
+    print "return 0;\n";
+    print "}\n";
 }
 
 sub Stupid::Declare::emitCode {

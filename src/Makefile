@@ -1,7 +1,10 @@
 grammar.pm: grammar.y
 	yapp -v grammar.y
 
-test: grammar.pm stupid.pl
+test:
+	cd ../test && make test
+
+testC: grammar.pm stupid.pl
 	./stupid.pl --language=C t1.stupid
 
 testH: grammar.pm stupid.pl
@@ -10,5 +13,5 @@ testH: grammar.pm stupid.pl
 tarball:
 	tar cvfz stupid.tgz CHANGES Makefile grammar.y stupid.pl Stupid/C.pm t1.stupid
 
-push: tarball
-	scp stupid.tgz www.links.org:files
+push:
+	hg push https://stupid-crypto.googlecode.com/hg/

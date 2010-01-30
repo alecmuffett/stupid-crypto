@@ -132,6 +132,7 @@ while(i ne32 64) {
     s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
     s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
     w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
+    i = i plus32 1;
 }
 
 "    Initialize hash value for this chunk:";
