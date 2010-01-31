@@ -5,7 +5,7 @@ test:
 	cd ../test && make test
 
 testC: grammar.pm stupid.pl
-	./stupid.pl --language=C t1.stupid
+	./stupid.pl --language=C ../test/t1.stupid
 
 testH: grammar.pm stupid.pl
 	./stupid.pl --language=Haskell t1.stupid

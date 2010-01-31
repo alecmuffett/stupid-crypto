@@ -18,6 +18,8 @@ my $sourceFile = shift;
 
 my $code = read_file($sourceFile);
 
+our @keywords;
+initLexer();
 $::Context = new Stupid::Context();
 
 my $parser = new grammar();
@@ -40,6 +42,12 @@ $wrapped->emitCode();
 
 exit 0;
 
+sub initLexer {
+    @keywords = qw(array uint8 uint32 if else while and8 and32 bor eq32
+lshift32 lshift8 mask32to8 minus32 mod32 ne32 not32 not8 or8 plus32 rrotate32
+rshift32 widen8to32 xor32);
+}
+
 sub lexer {
     my $parser = shift;
 
@@ -58,8 +66,8 @@ sub lexer {
     return ('',undef) if $code eq '';
 
     my ($type, $value);
-    # Keyword
-    if($code =~ /^(array|uint8|uint32|if|else|while|and8|and32|bor|eq32|lshift32|lshift8|mask32to8|minus32|mod32|ne32|not32|not8|or8|plus32|rrotate32|rshift32|widen8to32|xor32|\(|\)|\[|\]|{|}|,|;|=)(.*)$/s) {
+    # Punctuation
+    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=)(.*)$/s) {
 	$type = $1;
 	$value = undef;
 	$code = $2;
@@ -80,8 +88,14 @@ sub lexer {
 	$code = $2;
     # WORD
     } elsif($code =~ /^([A-Za-z][A-Za-z0-9_]*)(.*)$/s) {
-	$type = 'WORD';
 	$value = $1;
+	# Keyword
+	if(grep { $_ eq $value } @keywords) {
+	    $type = $value;
+	    $value = undef;
+	} else {
+	    $type = 'WORD';
+	}
 	$code = $2;
     # FAIL!!!
     } else {
