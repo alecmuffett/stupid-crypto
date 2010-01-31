@@ -1,6 +1,7 @@
 #!/usr/local/bin/bash
 
 set -e
+set -x
 
 TARGET=$1
 

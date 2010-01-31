@@ -43,9 +43,10 @@ $wrapped->emitCode();
 exit 0;
 
 sub initLexer {
-    @keywords = qw(array uint8 uint32 if else while and8 and32 bor eq32
-lshift32 lshift8 mask32to8 minus32 mod32 ne32 not32 not8 or8 plus32 rrotate32
-rshift32 widen8to32 xor32);
+    @keywords = qw(array uint8 uint32
+ function if else while
+ and8 and32 bor eq32 lshift32 lshift8 mask32to8 minus32 mod32 ne32 not32 not8
+ or8 plus32 rrotate32 rshift32 widen8to32 xor32);
 }
 
 sub lexer {
@@ -199,6 +200,50 @@ sub asString {
     return $str;
 }
 
+package Stupid::Function;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $name = shift;
+    my $returns = shift;
+    my $args = shift;
+    my $body = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{name} = $name;
+    $self->{returns} = $returns;
+    $self->{args} = $args;
+    $self->{body} = $body;
+
+    return $self;
+}
+
+package Stupid::FunctionList;
+
+use strict;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{functions} = [];
+
+    return $self;
+}
+
+sub appendFunction {
+    my $self = shift;
+    my $fn = shift;
+
+    push @{$self->{functions}}, $fn;
+}
+
 package Stupid::Comment;
 
 use strict;
@@ -220,6 +265,36 @@ sub value {
 
     print "# $self->{comment}\n";
     return undef;
+}
+
+package Stupid::ArgList;
+
+use strict;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{args} = [];
+
+    return $self;
+}
+
+sub appendArg {
+    my $self = shift;
+    my $arg = shift;
+
+    push @{$self->{args}}, $arg;
+}
+
+sub markAsReturn {
+    my $self = shift;
+
+    for my $a (@{$self->{args}}) {
+	$a->markAsReturn();
+    }
 }
 
 package Stupid::ArrayRef;
@@ -785,6 +860,12 @@ sub new {
     return $self;
 }
 
+sub markAsReturn {
+    my $self = shift;
+
+    $self->{var}->markAsReturn();
+}
+
 sub value {
     my $self = shift;
 
@@ -895,6 +976,7 @@ sub new {
 
     $self->{type} = $type;
     $self->{name} = $name;
+    $self->{isReturn} = 0;
 
     return $self;
 }
@@ -918,6 +1000,12 @@ sub value {
     my $self = shift;
 
     return $self->{value};
+}
+
+sub markAsReturn {
+    my $self = shift;
+
+    $self->{isReturn} = 1;
 }
 
 package Stupid::HexValue;

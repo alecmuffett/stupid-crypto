@@ -2,8 +2,41 @@
 
 %%
 
-prog	:	statements
+prog	:	functions
 	    { $_[1]; }
+	;
+
+functions :	functions function
+	    { $_[1]->appendFunction($_[2]); $_[1]; }
+	| function
+	    { my $t1 = new Stupid::FunctionList();
+	      $t1->appendFunction($_[1]);
+	      $t1; }
+	;
+
+function :	'function' '(' arglist ')' WORD '(' arglist ')'
+		  '{' statements '}'
+	    { $_[3]->markAsReturn();
+	      new Stupid::Function($_[5], $_[3], $_[7], $_[10]); }
+	;
+
+arglist :	arglist ',' arg
+	    { $_[1]->appendArg($_[3]); $_[1]; }
+	|	arg
+	    { my $t1 = new Stupid::ArgList();
+	      $t1->appendArg($_[1]);
+	      $t1; }
+	|
+	    { new Stupid::ArgList(); }
+	;
+
+arg	:	type vardecl
+	    { new Stupid::Declare($::Context, new Stupid::Variable($_[1],
+								   $_[2])); }
+	|	'array' '(' type ',' VALUE ')' vardecl
+	    { new Stupid::Declare($::Context,
+		  new Stupid::Variable(new Stupid::Type::Array($_[3], $_[5]),
+				       $_[7])); }
 	;
 
 statements :	statements statement
