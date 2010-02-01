@@ -20,7 +20,7 @@ for a in *.stupid; do
     echo FAIL: Compile
     # don't exit here because want to keep going
   fi
-  rm ${BN}
+  rm -f ${BN}
 done
 
 exit 0
