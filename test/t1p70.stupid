@@ -1,3 +1,4 @@
+function () test() {
 "This code adapted from Wikipedia pseudocode";
 
 "Note 2: All constants in this pseudo code are in big endian";
@@ -68,3 +69,4 @@ uint32 ch = 0;
 "they also require left and right to both be the correct type and size";
 "also, we have no precedence, it is up to you to bracket things";
 "rshift is with zero padding";
+}

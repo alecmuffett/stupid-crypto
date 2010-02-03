@@ -1,4 +1,6 @@
+function () test() {
+
 array(uint32, 3) k =
     (0x428a2f98, 0x71374491);
 
-
+}

@@ -1,3 +1,4 @@
+function () test() {
 "This code adapted from Wikipedia pseudocode";
 
 "Note 2: All constants in this pseudo code are in big endian";
@@ -72,3 +73,4 @@ uint32 ch = 0;
 pad_bit = 7 minus32 (message_bits mod32 8);
 pad_byte = (message_bits plus32 1) rshift32 8;
 message[pad_byte] = message[pad_byte] or8 (1 lshift8 pad_bit);
+}

@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 
 #set -e
 #set -x
@@ -8,7 +8,7 @@ LANG=$1
 for a in *.stupid; do 
   BN=$(basename -s .stupid $a)
   echo -n "testing ${BN} in ${LANG} ... "
-  PERLLIB=../src ./build-${LANG}.sh ${BN}
+  PERLLIB=../src ./build-${LANG}.sh ${BN} >/dev/null 2>&1
   if [ "$?" = "0" ] ; then 
     ./${BN} >/dev/null 2>&1
     if [ "$?" = "0" ] ; then 

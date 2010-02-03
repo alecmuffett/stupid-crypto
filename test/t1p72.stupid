@@ -1,3 +1,4 @@
+function () test() {
 "This code adapted from Wikipedia pseudocode";
 
 "Note 2: All constants in this pseudo code are in big endian";
@@ -70,3 +71,4 @@ uint32 ch = 0;
 "rshift is with zero padding";
 
 pad_bit = 7 minus32 (message_bits mod32 8);
+}

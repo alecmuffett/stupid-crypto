@@ -1,3 +1,4 @@
+function () test() {
 "This code adapted from Wikipedia pseudocode";
 
 "Note 2: All constants in this pseudo code are in big endian";
@@ -97,4 +98,4 @@ while (((pad_byte mod32 512) ne32 56) bor (pad_bit ne32 7)) {
          pad_bit = pad_bit minus32 1;
       }
 }
-
+}

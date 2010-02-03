@@ -1,3 +1,7 @@
+function () test() {
+
 uint32 h0 = 0x6a09e667;
 uint32 h1 = 0xbb67ae85;
 h1=h0;
+
+}
