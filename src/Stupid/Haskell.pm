@@ -16,10 +16,174 @@ sub Stupid::LanguageWrapper::emitCode {
     print "import Control.Applicative\n";
     print "import Control.Monad.ST\n";
     print "import StupidStuff\n";
-    print "main = do { putStrLn \"Test\"; print \$ runST prog }\n";
-    print "prog = ";
+    print "main = do { putStrLn \"Test\"; {- print \$ runST prog -} }\n\n";
+#    print "prog = ";
     $self->{tree}->emitCode();
 }
+
+## FUNCTODO
+sub Stupid::FunctionList::emitCode {
+    my $self = shift;
+
+    for my $f (@{$self->{functions}}) {
+        $f->emitCode();
+    }
+}
+
+## FUNCTODO
+sub Stupid::Function::emitCode {
+    my $self = shift;
+
+    # first the type signature
+    # the types used here are a bit unintuitive for haskell and so perhaps
+    # should not be what is used in the long term; but it seems to
+    # correspond fairly closely with the way that the C bindings are
+    # implemented so may be easier for now.
+    print $self->{name}, ' :: ';
+    my $first;
+    $first = $self->{returns}->emitReturnTypes();
+    $first = $self->{args}->emitArgTypes($first);
+    print " -> " if !$first;
+    print " ST s ()\n";
+
+    # second the body
+    print $self->{name}, ' ' ;
+    # this should emit just the names, not the types (the types should
+    # have been emitted above)
+    $first = $self->{returns}->emitReturnDecls();
+    $self->{args}->emitArgs($first);
+    print " = do {\n";
+    $self->{body}->emitCode();
+    print "}\n";
+}
+
+sub Stupid::ArgList::emitArgTypes {
+    my $self = shift;
+    my $first = shift;
+
+    for my $arg (@{$self->{args}}) {
+        print ' -> ' if !$first;
+	print "STRef s ";
+        $arg->emitHaskellType();
+        $first = 0;
+    }
+    return $first;
+}
+
+
+sub Stupid::ArgList::emitReturnTypes {
+    my $self = shift;
+
+    my $first = 1;
+    for my $arg (@{$self->{args}}) {
+        print '->' if !$first;
+        print "STRef s ";
+        $arg->emitHaskellType();
+        $first = 0;
+    }
+    return $first;
+}
+
+sub Stupid::Declare::emitHaskellType {
+    my $self = shift;
+
+    $self->{var}->emitHaskellType();
+}
+
+sub Stupid::Variable::emitHaskellType {
+    my $self = shift;
+
+    $self->{type}->emitHaskellType();
+}
+
+# FUNCTODO
+sub Stupid::ArgList::emitReturnDecls {
+    my $self = shift;
+
+    my $first = 1;
+    for my $arg (@{$self->{args}}) {
+        print ' ' if !$first;
+        $arg->emitReturnDecl();
+        $first = 0;
+    }
+    return $first;
+}
+
+# FUNCTODO
+sub Stupid::ArgList::emitArgs {
+    my $self = shift;
+    my $first = shift;
+
+    for my $arg (@{$self->{args}}) {
+        print ' ' if !$first;
+        $arg->emitArg();
+        $first = 0;
+    }
+}
+
+# FUNCTODO
+sub Stupid::Declare::emitArg {
+    my $self = shift;
+
+    $self->{var}->emitArg();
+}
+
+# FUNCTODO
+sub Stupid::Variable::emitArg {
+    my $self = shift;
+    print $self->{name};
+    # $self->{type}->emitArg($self->{name});
+}
+
+# FUNCTODO
+sub Stupid::Type::UInt32::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    $self->emitHaskellType($name);
+}
+
+#FUNCTODO
+sub Stupid::Type::UInt8::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    $self->emitHaskellType($name);
+}
+
+
+
+
+# FUNCTODO
+sub Stupid::Declare::emitReturnDecl {
+    my $self = shift;
+    $self->{var}->emitReturnDecl();
+}
+
+# FUNCTODO
+sub Stupid::Variable::emitReturnDecl {
+    my $self = shift;
+    print ' ', $self->{name}, ' ';
+    # $self->{type}->emitReturnDecl($self->{name});
+}
+
+# FUNCTODO
+ sub Stupid::Type::UInt32::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    print "uint32 *$name";
+}
+
+sub Stupid::Type::Array::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    $self->emitHaskellType($name);
+}
+
+
+
 
 sub Stupid::Declare::emitCode {
     my $self = shift;
@@ -181,6 +345,14 @@ sub Stupid::Type::UInt32::typeName {
 
     return 'Uint32';
 }
+
+sub Stupid::Type::UInt8::emitHaskellType {
+    my $self = shift;
+    my $name = shift;
+
+    print "Uint8";
+}
+
 
 sub Stupid::Type::UInt8::typeName {
     my $self = shift;
