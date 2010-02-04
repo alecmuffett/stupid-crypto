@@ -1,7 +1,7 @@
 grammar.pm: grammar.y
 	yapp -v grammar.y
 
-test:
+test: grammar.pm
 	cd ../test && make test
 
 testC: grammar.pm stupid.pl

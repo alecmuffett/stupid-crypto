@@ -18,6 +18,8 @@ function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
 	      new Stupid::Function($_[5], $_[3], $_[7], $_[10]); }
+	| comment ';'
+	    { $_[1]; }
 	;
 
 arglist :	arglist ',' arg
@@ -50,7 +52,7 @@ statements :	statements statement
 statement :	decl ';'
 	    { $_[1]; }
 	| comment ';'
-	    { new Stupid::Comment($_[1]); }
+	    { $_[1]; }
 	| var '=' expr ';'
 	    { new Stupid::Statement(new Stupid::Set($_[1], $_[3])); }
 	| 'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
@@ -137,6 +139,7 @@ vardecl	:	WORD
 	;
 
 comment :	STRING
+	    { new Stupid::Comment($_[1]); }
 	;
 
 %%
