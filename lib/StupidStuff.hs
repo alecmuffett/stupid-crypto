@@ -130,7 +130,10 @@ module StupidStuff where
   list !!! ix = do
     listV <- list
     ixV <- ix
-    return (listV !! (horribleCastToInt ixV))
+    if ((horribleCastToInt ixV) >= length listV) then
+        error $ "Array out of bounds: array length "++(show $ length listV)++", subscript "++(show ixV)
+     else 
+       return (listV !! (horribleCastToInt ixV))
 
   -- this is pretty WTF - really want something that will return an Int
   -- if we're in range, and gracefully error out if not
