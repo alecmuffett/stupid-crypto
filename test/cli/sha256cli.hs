@@ -7,15 +7,15 @@ import Control.Monad.ST
 import Data.STRef
 
 main = do
-  putStrLn "RSA256 Stupid-Haskell commandline tool"
-  interact rsa256sum
+  putStrLn "SHA256 Stupid-Haskell commandline tool"
+  interact sha256sum
 
 -- stretching out the input to have enough space for padding bits
--- should be done inside the rsa256 stupid code, not in the calling haskell
+-- should be done inside the sha256 stupid code, not in the calling haskell
 -- code, I think.
 
-rsa256sum :: String -> String
-rsa256sum inputString = 
+sha256sum :: String -> String
+sha256sum inputString = 
   runST $ do
 
    -- need to pad length so that message buffer has space for extra
