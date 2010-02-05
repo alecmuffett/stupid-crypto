@@ -12,6 +12,7 @@ sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
 # TODO these imports could be re-exported by StupidStuff
+    print "module StupidGenerated where\n";
     print "import Data.STRef\n";
     print "import Control.Applicative\n";
     print "import Control.Monad.ST\n";
