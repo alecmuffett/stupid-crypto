@@ -8,7 +8,7 @@ LANG=$1
 for a in *.stupid; do 
   BN=$(basename -s .stupid $a)
   echo -n "testing ${BN} in ${LANG} ... "
-  PERLLIB=../src ./build-${LANG}.sh ${BN} >/dev/null 2>&1
+  ./build-${LANG}.sh ${BN} >/dev/null 2>&1
   if [ "$?" = "0" ] ; then 
     ./${BN} >/dev/null 2>&1
     if [ "$?" = "0" ] ; then 

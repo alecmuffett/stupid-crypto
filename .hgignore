@@ -3,5 +3,6 @@
 .*\.o
 src/grammar\.pm
 src/stupid\.tgz
-test/.*\.c
-test/.*\.hs
+test/generated/.*\.c
+test/generated/.*\.hs
+test/test_sha256

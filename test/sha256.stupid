@@ -1,4 +1,4 @@
-function (array(uint32,8) output) sha256(array(uint8, 64) message, uint32 message_bits ) {
+function (array(uint8, 32) output) sha256(array(uint8, 64) message, uint32 message_bits ) {
 "This code adapted from Wikipedia pseudocode";
 
 "message must include enough space for padding to happen";
@@ -185,13 +185,36 @@ h7 = h7 plus32 h;
 "Produce the final hash value (big-endian):
 digest = hash = h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7";
 
-output[0]=h0;
-output[1]=h1;
-output[2]=h2;
-output[3]=h3;
-output[4]=h4;
-output[5]=h5;
-output[6]=h6;
-output[7]=h7;
-
+output[0] = mask32to8 (h0 rshift32 24);
+output[1] = mask32to8 (h0 rshift32 16);
+output[2] = mask32to8 (h0 rshift32 8);
+output[3] = mask32to8 h0;
+output[4] = mask32to8 (h1 rshift32 24);
+output[5] = mask32to8 (h1 rshift32 16);
+output[6] = mask32to8 (h1 rshift32 8);
+output[7] = mask32to8 h1;
+output[8] = mask32to8 (h2 rshift32 24);
+output[9] = mask32to8 (h2 rshift32 16);
+output[10] = mask32to8 (h2 rshift32 8);
+output[11] = mask32to8 h2;
+output[12] = mask32to8 (h3 rshift32 24);
+output[13] = mask32to8 (h3 rshift32 16);
+output[14] = mask32to8 (h3 rshift32 8);
+output[15] = mask32to8 h3;
+output[16] = mask32to8 (h4 rshift32 24);
+output[17] = mask32to8 (h4 rshift32 16);
+output[18] = mask32to8 (h4 rshift32 8);
+output[19] = mask32to8 h4;
+output[20] = mask32to8 (h5 rshift32 24);
+output[21] = mask32to8 (h5 rshift32 16);
+output[22] = mask32to8 (h5 rshift32 8);
+output[23] = mask32to8 h5;
+output[24] = mask32to8 (h6 rshift32 24);
+output[25] = mask32to8 (h6 rshift32 16);
+output[26] = mask32to8 (h6 rshift32 8);
+output[27] = mask32to8 h6;
+output[28] = mask32to8 (h7 rshift32 24);
+output[29] = mask32to8 (h7 rshift32 16);
+output[30] = mask32to8 (h7 rshift32 8);
+output[31] = mask32to8 h7;
 }

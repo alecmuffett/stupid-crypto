@@ -12,3 +12,6 @@ testH: grammar.pm stupid.pl
 
 tarball:
 	tar cvfz stupid.tgz CHANGES Makefile grammar.y stupid.pl Stupid/C.pm t1.stupid
+
+push:
+	cd .. && make push

@@ -223,6 +223,13 @@ sub Stupid::Type::Array::emitReturnDecl {
     $self->emitDeclaration($name);
 }
 
+sub Stupid::Type::Array::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    $self->emitDeclaration($name);
+}
+
 sub Stupid::Type::Array::emitDeclaration {
     my $self = shift;
     my $name = shift;
