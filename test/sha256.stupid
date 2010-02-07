@@ -89,7 +89,7 @@ if (pad_bit eq32 0) {
 "bor is like C || (i.e. RHS is only executed if LHS is false)";
 
 "448/8 = 56";
-while (((pad_byte mod32 512) ne32 56) bor (pad_bit ne32 7)) {
+while (((pad_byte mod32 64) ne32 56) bor (pad_bit ne32 7)) {
       message[pad_byte] = message[pad_byte] and8 (not8 (1 lshift8 pad_bit));
       if (pad_bit eq32 0) {
          pad_bit = 7;
