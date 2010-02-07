@@ -108,11 +108,11 @@ message[pad_byte plus32 3] = 0;
 
 message[pad_byte plus32 7] = mask32to8 message_bits;
 tmp = message_bits rshift32 8;
-message[pad_byte plus32 6] = mask32to8 message_bits;
-tmp = message_bits rshift32 8;
-message[pad_byte plus32 5] = mask32to8 message_bits;
-tmp = message_bits rshift32 8;
-message[pad_byte plus32 4] = mask32to8 message_bits;
+message[pad_byte plus32 6] = mask32to8 tmp;
+tmp = tmp rshift32 8;
+message[pad_byte plus32 5] = mask32to8 tmp;
+tmp = tmp rshift32 8;
+message[pad_byte plus32 4] = mask32to8 tmp;
 
 "for each chunk (we only have one, so don't bother with the loop for now)";
 
