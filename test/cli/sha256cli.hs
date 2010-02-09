@@ -6,9 +6,10 @@ import Data.Char
 import Control.Monad.ST
 import Data.STRef
 import Numeric
+import System.IO
 
 main = do
-  putStrLn "SHA256 Stupid-Haskell commandline tool"
+  hPutStrLn stderr "SHA256 Stupid-Haskell commandline tool"
   interact sha256sum
 
 -- stretching out the input to have enough space for padding bits
@@ -26,7 +27,7 @@ sha256sum inputString =
 
    let paddedString = inputString ++ (take 64 $ repeat 'X')
 
-   outSTRefs <- sequence $ take 8 $ repeat (newSTRef (0 :: Uint32))
+   outSTRefs <- sequence $ take 32 $ repeat (newSTRef (0 :: Uint8))
    outArray <- newSTRef outSTRefs
    let message = map charToUInt8 paddedString
    messageSTRefs <- mapM newSTRef message
@@ -39,10 +40,10 @@ sha256sum inputString =
 -- (stupid-specific?) structure for representing arbitrary list of bits?
    sha256 outArray messageArray length
    outVs <- mapM readSTRef outSTRefs
-   return $ show $ map intToHex outVs
+   return $ foldr1 (++) (map intToHex outVs)
  
 -- sha256 has this signature:
--- sha256 :: STRef s  [STRef s Uint32]  -> STRef s  [STRef s Uint8]  -> STRef s Uint32 ->  ST s ()
+-- sha256 :: STRef s  [STRef s Uint8]  -> STRef s  [STRef s Uint8]  -> STRef s Uint32 ->  ST s ()
  
 charToUInt8 :: Char -> Uint8
 charToUInt8 c = horribleCastTo8 (ord c)
