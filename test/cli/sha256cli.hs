@@ -5,6 +5,7 @@ import StupidStuff
 import Data.Char
 import Control.Monad.ST
 import Data.STRef
+import Numeric
 
 main = do
   putStrLn "SHA256 Stupid-Haskell commandline tool"
@@ -38,11 +39,16 @@ sha256sum inputString =
 -- (stupid-specific?) structure for representing arbitrary list of bits?
    sha256 outArray messageArray length
    outVs <- mapM readSTRef outSTRefs
-   return $ show outVs
+   return $ show $ map intToHex outVs
  
 -- sha256 has this signature:
 -- sha256 :: STRef s  [STRef s Uint32]  -> STRef s  [STRef s Uint8]  -> STRef s Uint32 ->  ST s ()
  
 charToUInt8 :: Char -> Uint8
 charToUInt8 c = horribleCastTo8 (ord c)
- 
+
+
+-- courtesty of http://stackoverflow.com/questions/1959715/how-to-print-integer-literals-in-binary-or-hex-in-haskell
+
+intToHex i = showIntAtBase 16 intToDigit i ""
+
