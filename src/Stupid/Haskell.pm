@@ -53,9 +53,9 @@ sub Stupid::Function::emitCode {
     # have been emitted above)
     $first = $self->{returns}->emitReturnDecls();
     $self->{args}->emitArgs($first);
-    print " = do {\n";
+    print " = ";
     $self->{body}->emitCode();
-    print "}\n";
+    print "\n";
 }
 
 sub Stupid::ArgList::emitArgTypes {
@@ -219,11 +219,11 @@ sub Stupid::If::emitCode {
     print "xxxifcond <- ";
     $self->{cond}->emitCode();
     print "; \n if xxxifcond";
-    print ' then do { ';
+    print ' then ';
     $self->{then}->emitCode();
-    print " } else do { ";
+    print "  else ";
     $self->{else}->emitCode();
-    print "}\n";
+    print "\n";
     print "};\n"; 
 }
 
@@ -236,9 +236,9 @@ sub Stupid::While::emitCode {
 # it depends on the value of variables...
     print 'stupidwhile (';
     $self->{cond}->emitCode();
-    print ") (do {\n";
+    print ") (\n";
     $self->{body}->emitCode();
-    print "});\n";
+    print ");\n";
 }
 
 sub Stupid::Comment::emitCode {
