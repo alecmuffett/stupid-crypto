@@ -135,16 +135,18 @@ module StupidStuff where
      else 
        return (listV !! (horribleCastToInt ixV))
 
-  -- this is pretty WTF - really want something that will return an Int
-  -- if we're in range, and gracefully error out if not
+  -- these should perhaps do some range checking - I don't know
+  -- what happens if these are given an out-of-range integer, but
+  -- stupid should define what should happen, and these should implement
+  -- that. TODO.
   horribleCastToInt :: (Integral n) => n -> Int 
-  horribleCastToInt num = read (show num)
+  horribleCastToInt num = fromIntegral num
 
   horribleCastTo32 :: (Integral n) => n -> Uint32
-  horribleCastTo32 num = read (show num)
+  horribleCastTo32 num = fromIntegral num
 
   horribleCastTo8 :: (Integral n) => n -> Uint8
-  horribleCastTo8 num = read (show num)
+  horribleCastTo8 num = fromIntegral num
 
   -- horrible in at least 2 ways...
   horribleCastTo8M :: (Monad m, Integral n) => n -> m Uint8
