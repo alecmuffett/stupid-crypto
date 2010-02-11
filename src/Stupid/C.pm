@@ -216,6 +216,21 @@ sub Stupid::Type::UInt8::emitDeclaration {
     print "uint8 $name";
 }
 
+sub Stupid::Type::UInt8::dereference {
+    my $self = shift;
+
+    print '*';
+}
+
+
+sub Stupid::Type::UInt8::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    print "uint8 *$name";
+}
+
+
 sub Stupid::Type::Array::emitReturnDecl {
     my $self = shift;
     my $name = shift;
@@ -298,6 +313,16 @@ sub Stupid::And8::emitCode {
     print ')';
 }
 
+sub Stupid::BAnd::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' && ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
 sub Stupid::BOr::emitCode {
     my $self = shift;
 
@@ -317,6 +342,30 @@ sub Stupid::Eq32::emitCode {
     $self->{right}->emitCode();
     print ')';
 }
+
+
+sub Stupid::GE8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' >= ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+
+sub Stupid::LE8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' <= ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+
 
 sub Stupid::LShift32::emitCode {
     my $self = shift;
@@ -346,6 +395,17 @@ sub Stupid::Mask32To8::emitCode {
     print '&0xff))';
 }
 
+sub Stupid::Minus8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' - ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+
 sub Stupid::Minus32::emitCode {
     my $self = shift;
 
@@ -355,6 +415,17 @@ sub Stupid::Minus32::emitCode {
     $self->{right}->emitCode();
     print ')';
 }
+
+sub Stupid::Mod8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' % ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
 
 sub Stupid::Mod32::emitCode {
     my $self = shift;
@@ -398,6 +469,16 @@ sub Stupid::Or8::emitCode {
     print '(';
     $self->{left}->emitCode();
     print ' | ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::Plus8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' + ';
     $self->{right}->emitCode();
     print ')';
 }

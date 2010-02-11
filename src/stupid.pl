@@ -45,8 +45,9 @@ exit 0;
 sub initLexer {
     @keywords = qw(array uint8 uint32
  function if else while
- and8 and32 bor eq32 lshift32 lshift8 mask32to8 minus32 mod32 ne32 not32 not8
- or8 plus32 rrotate32 rshift32 widen8to32 xor32);
+ and8 and32 band bor eq32 ge8 le8 lshift32 lshift8 mask32to8 minus8 minus32
+ mod8 mod32 ne32 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
+ xor32);
 }
 
 sub lexer {
@@ -484,6 +485,27 @@ sub new {
     return $self;
 }
 
+package Stupid::BAnd;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+
 package Stupid::BOr;
 
 use strict;
@@ -523,6 +545,48 @@ sub new {
 
     return $self;
 }
+
+package Stupid::LE8;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+
+package Stupid::GE8;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
 
 package Stupid::LShift32;
 
@@ -571,6 +635,33 @@ sub value {
     return $self->{left}->value()->blsft($self->{right}->value());
 }
 
+package Stupid::Minus8;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+sub value {
+    my $self = shift;
+
+    # FIXME type and underflow checking
+    return $self->{left}->value()->bsub($self->{right}->value());
+}
+
 package Stupid::Minus32;
 
 use strict;
@@ -597,6 +688,35 @@ sub value {
     # FIXME type and underflow checking
     return $self->{left}->value()->bsub($self->{right}->value());
 }
+
+
+package Stupid::Mod8;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+sub value {
+    my $self = shift;
+
+    # FIXME type checking
+    return $self->{left}->value()->bmod($self->{right}->value());
+}
+
 
 package Stupid::Mod32;
 
@@ -743,6 +863,34 @@ sub value {
     # FIXME type checking
     return $self->{left}->value()->bior($self->{right}->value());
 }
+
+package Stupid::Plus8;
+
+use strict;
+
+# Unsigned decimal value, any length
+
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+sub value {
+    my $self = shift;
+
+    # FIXME type and overflow checking
+    $self->{left}->value()->badd($self->{right}->value());
+}
+
 
 package Stupid::Plus32;
 

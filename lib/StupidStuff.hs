@@ -21,11 +21,25 @@ module StupidStuff where
 -- raw values. this allows the translated language to have expressions
 -- that use them directly
 
+  mod8 :: (Monad m) => (m Uint8) -> (m Uint8) -> (m Uint8)
+  a `mod8` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs `mod` rhs) -- TODO is this the right kind of mod?
+
+
   mod32 :: (Monad m) => (m Uint32) -> (m Uint32) -> (m Uint32)
   a `mod32` b = do
     lhs <- a
     rhs <- b
     return (lhs `mod` rhs) -- TODO is this the right kind of mod?
+
+  minus8 :: (Monad m) => (m Uint8) -> (m Uint8) -> (m Uint8)
+  a `minus8` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs - rhs)
+
 
   minus32 :: (Monad m) => (m Uint32) -> (m Uint32) -> (m Uint32)
   a `minus32` b = do
@@ -33,12 +47,32 @@ module StupidStuff where
     rhs <- b
     return (lhs - rhs)
 
+  plus8 :: (Monad m) => (m Uint8) -> (m Uint8) -> (m Uint8)
+  a `plus8` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs + rhs)
+  
   plus32 :: (Monad m) => (m Uint32) -> (m Uint32) -> (m Uint32)
   a `plus32` b = do
     lhs <- a
     rhs <- b
     return (lhs + rhs)
- 
+  
+  le8 :: (Monad m) => (m Uint8) -> (m Uint8) -> (m Bool)
+  a `le8` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs <= rhs)
+
+
+  ge8 :: (Monad m) => (m Uint8) -> (m Uint8) -> (m Bool)
+  a `ge8` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs >= rhs)
+
+
   eq32 :: (Monad m) => (m Uint32) -> (m Uint32) -> (m Bool)
   a `eq32` b = do
     lhs <- a
@@ -117,6 +151,11 @@ module StupidStuff where
     op <- a
     return (complement op)
 
+  band :: (Monad m) => (m Bool) -> (m Bool) -> (m Bool)
+  a `band` b = do
+    lhs <- a
+    rhs <- b
+    return (lhs && rhs)
 
   bor :: (Monad m) => (m Bool) -> (m Bool) -> (m Bool)
   a `bor` b = do

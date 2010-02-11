@@ -65,22 +65,34 @@ expr	:	expr 'and32' expr
 	    { new Stupid::And32($_[1], $_[3]); }
 	|	expr 'and8' expr
 	    { new Stupid::And8($_[1], $_[3]); }
+	|	expr 'band' expr
+	    { new Stupid::BAnd($_[1], $_[3]); }
 	|	expr 'bor' expr
 	    { new Stupid::BOr($_[1], $_[3]); }
 	|	expr 'eq32' expr
 	    { new Stupid::Eq32($_[1], $_[3]); }
+	|	expr 'ge8' expr
+	    { new Stupid::GE8($_[1], $_[3]); }
+	|	expr 'le8' expr
+	    { new Stupid::LE8($_[1], $_[3]); }
 	|	expr 'lshift32' expr
 	    { new Stupid::LShift32($_[1], $_[3]); }
 	|	expr 'lshift8' expr
 	    { new Stupid::LShift8($_[1], $_[3]); }
+	|	expr 'minus8' expr
+	    { new Stupid::Minus8($_[1], $_[3]); }
 	|	expr 'minus32' expr
 	    { new Stupid::Minus32($_[1], $_[3]); }
+	|	expr 'mod8' expr
+	    { new Stupid::Mod8($_[1], $_[3]); }
 	|	expr 'mod32' expr
 	    { new Stupid::Mod32($_[1], $_[3]); }
 	|	expr 'ne32' expr
 	    { new Stupid::Ne32($_[1], $_[3]); }
 	|	expr 'or8' expr
 	    { new Stupid::Or8($_[1], $_[3]); }
+	|	expr 'plus8' expr
+	    { new Stupid::Plus8($_[1], $_[3]); }
 	|	expr 'plus32' expr
 	    { new Stupid::Plus32($_[1], $_[3]); }
 	|	expr 'rrotate32' expr

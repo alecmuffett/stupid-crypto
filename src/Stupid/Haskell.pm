@@ -444,6 +444,16 @@ sub Stupid::And8::emitCode {
     print ')';
 }
 
+sub Stupid::BAnd::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `band` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
 sub Stupid::BOr::emitCode {
     my $self = shift;
 
@@ -460,6 +470,38 @@ sub Stupid::Eq32::emitCode {
     print '(';
     $self->{left}->emitCode();
     print ' `eq32` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::GE8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `ge8` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::LE8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `le8` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+
+
+sub Stupid::GE32::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `ge32` ';
     $self->{right}->emitCode();
     print ')';
 }
@@ -498,6 +540,16 @@ sub Stupid::Minus32::emitCode {
     print '(';
     $self->{left}->emitCode();
     print ' `minus32` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::Mod8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `mod8` ';
     $self->{right}->emitCode();
     print ')';
 }
@@ -544,6 +596,26 @@ sub Stupid::Or8::emitCode {
     print '(';
     $self->{left}->emitCode();
     print ' `or8` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::Minus8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `minus8` ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::Plus8::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' `plus8` ';
     $self->{right}->emitCode();
     print ')';
 }
