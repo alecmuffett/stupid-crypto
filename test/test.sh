@@ -3,6 +3,15 @@
 #set -e
 #set -x
 
+trap onexit HUP INT QUIT TERM
+
+function onexit() {
+    local exit_status=${1:-$?}
+    echo Exiting $0 with status $exit_status
+    rm /tmp/stupid.$$
+    exit $exit_status
+}
+
 LANG=$1
 
 for a in *.stupid; do 
