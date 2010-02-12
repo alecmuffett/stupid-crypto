@@ -10,8 +10,10 @@ use Getopt::Long;
 $| = 1;
 
 my $language;
+our $debug;
 
-croak if !GetOptions("language=s" => \$language);
+croak if !GetOptions("language=s" => \$language,
+    "debug" => \$debug);
 croak "Must specify an output language" if !$language;
 
 my $sourceFile = shift;
@@ -26,9 +28,9 @@ my $parser = new grammar();
 $parser->YYData->{code} = $code;
 my $ptree = $parser->YYParse(yylex => \&lexer,
 			     yyerror => \&yyerror,
-			     yydebug => 6);
+			     yydebug => $debug ? 6 : 0);
 
-use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]);
+use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
 
 #$ptree->value();
 #$::Context->dumpSymbols();
@@ -104,9 +106,11 @@ sub lexer {
 	error($parser, "Can't parse");
     }
 
-    print STDERR "type = $type";
-    print STDERR " value = $value" if defined $value;
-    print STDERR "\n";
+    if($debug) {
+	print STDERR "type = $type";
+	print STDERR " value = $value" if defined $value;
+	print STDERR "\n";
+    }
 
     $parser->YYData->{code} = $code;
     return ($type, $value);
