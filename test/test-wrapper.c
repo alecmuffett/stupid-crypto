@@ -8,7 +8,9 @@ typedef struct
     {
     void (*put)(void *info, uint8 ch);
     void *info;
-    } test_ostream;
+    } stupid_ostream;
+
+void test(stupid_ostream *out);
 
 void put(void *info, uint8 ch)
     {
@@ -17,7 +19,7 @@ void put(void *info, uint8 ch)
 
 int main(int argc, char **argv)
     {
-    test_ostream t;
+    stupid_ostream t;
 
     t.put = put;
     test(&t);

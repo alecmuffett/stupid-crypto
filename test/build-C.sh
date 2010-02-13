@@ -6,4 +6,4 @@ set -e
 TARGET=$1
 
 PERLLIB=../src ../src/stupid.pl --language=C ${TARGET}.stupid > generated/${TARGET}.c
-gcc -o generated/${TARGET} test-wrapper.c generated/${TARGET}.c
+gcc -Wall -Werror -o generated/${TARGET} test-wrapper.c generated/${TARGET}.c
