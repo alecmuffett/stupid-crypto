@@ -1,0 +1,9 @@
+function() test(ostream out) {
+  array(uint8, 13) hello = ( "Hello, world!" );
+  uint32 n = 0;
+
+  while(n ne32 13) {
+    out.put(hello[n]);
+    n = n plus32 1;
+  }
+}

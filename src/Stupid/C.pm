@@ -8,6 +8,11 @@ sub Stupid::LanguageWrapper::emitCode {
     print "#include <sys/types.h>\n";
     print "typedef uint32_t uint32;\n";
     print "typedef uint8_t uint8;\n";
+    print "typedef struct {\n";
+    print "  void (*put)(void *info, uint8 ch);\n";
+    print "  void *info;\n";
+    print "} stupid_ostream;\n";
+
     $self->{tree}->emitCode();
 }
 
@@ -85,6 +90,30 @@ sub Stupid::Statement::emitCode {
 
     $self->{expr}->emitCode();
     print ";\n";
+}
+
+sub Stupid::MemberCall::emitCode {
+    my $self = shift;
+
+    $self->{owner}->emitCode();
+    print "->$self->{member}(";
+    # something of a hack at this stage
+    $self->{owner}->emitCode();
+    print '->info, ';
+    # end of hack
+    $self->{args}->emitCode();
+    print ');';
+}
+
+sub Stupid::ExprList::emitCode {
+    my $self = shift;
+
+    my $first = 1;
+    for my $expr (@{$self->{expressions}}) {
+	print ', ' if !$first;
+	$first = 0;
+	$expr->emitCode();
+    }
 }
 
 sub Stupid::If::emitCode {
@@ -230,6 +259,12 @@ sub Stupid::Type::UInt8::emitReturnDecl {
     print "uint8 *$name";
 }
 
+sub Stupid::Type::OStream::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    print "stupid_ostream *$name";
+}
 
 sub Stupid::Type::Array::emitReturnDecl {
     my $self = shift;

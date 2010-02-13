@@ -43,7 +43,7 @@ arg	:	type vardecl
 
 statements :	statements statement
 	    { $_[1]->appendStatement($_[2]); $_[1]; }
-	| statement
+	|	statement
 	    { my $t1 = new Stupid::StatementList();
 	      $t1->appendStatement($_[1]);
 	      $t1; }
@@ -51,13 +51,15 @@ statements :	statements statement
 
 statement :	decl ';'
 	    { $_[1]; }
-	| comment ';'
+	|	comment ';'
 	    { $_[1]; }
-	| var '=' expr ';'
+	|	var '=' expr ';'
 	    { new Stupid::Statement(new Stupid::Set($_[1], $_[3])); }
-	| 'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
+	|	expr '.' WORD '(' exprlist ')' ';'
+	    { new Stupid::MemberCall($_[1], $_[3], $_[5]); }
+	| 	'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
 	    { new Stupid::If($_[3], $_[6], $_[10]); }
-	| 'while' '(' expr ')' '{' statements '}'
+	| 	'while' '(' expr ')' '{' statements '}'
 	    { new Stupid::While($_[3], $_[6]); }
 	;
 
@@ -116,6 +118,12 @@ expr	:	expr 'and32' expr
 	|	VALUE
 	;
 
+exprlist:	exprlist ',' expr
+	    { $_[1]->appendExpr($_[3]); }
+	|	expr
+	    { my $t = new Stupid::ExprList(); $t->appendExpr($_[1]); $t; }
+	;
+
 var	:	WORD
 	    { $::Context->findSymbol($_[1]); }
 	|	var '[' expr ']'
@@ -135,6 +143,8 @@ type	:	'uint32'
 	    { new Stupid::Type::UInt32(); }
 	|	'uint8'
 	    { new Stupid::Type::UInt8(); }
+	|	'ostream'
+	    { new Stupid::Type::OStream(); }
 	;
 
 arrayval :	'(' val_list ')'
@@ -145,6 +155,8 @@ val_list :	val_list ',' VALUE
 	    { $_[1]->append($_[3]); $_[1]; }
 	|	VALUE
 	    { my $t = new Stupid::ArrayValue(); $t->append($_[1]); $t; }
+	|	STRING
+	    { Stupid::ArrayFromString($_[1]); }
 	;
 
 vardecl	:	WORD

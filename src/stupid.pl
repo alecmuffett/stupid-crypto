@@ -45,7 +45,7 @@ $wrapped->emitCode();
 exit 0;
 
 sub initLexer {
-    @keywords = qw(array uint8 uint32
+    @keywords = qw(array uint8 uint32 ostream
  function if else while
  and8 and32 band bor eq32 ge8 le8 lshift32 lshift8 mask32to8 minus8 minus32
  mod8 mod32 ne32 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
@@ -71,7 +71,7 @@ sub lexer {
 
     my ($type, $value);
     # Punctuation
-    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=)(.*)$/s) {
+    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=|\.)(.*)$/s) {
 	$type = $1;
 	$value = undef;
 	$code = $2;
@@ -130,6 +130,21 @@ sub error {
 
     $parser->YYData->{code} =~ /(.*)$/m;
     croak "$error: $1\n";
+}
+
+package Stupid;
+
+use strict;
+
+sub ArrayFromString {
+    my $str = shift;
+
+    my $t = new Stupid::ArrayValue();
+    foreach my $c (split //, $str) {
+	$t->append(new Stupid::DecimalValue(ord($c)));
+    }
+
+    return $t;
 }
 
 package Stupid::LanguageWrapper;
@@ -247,6 +262,48 @@ sub appendFunction {
     my $fn = shift;
 
     push @{$self->{functions}}, $fn;
+}
+
+package Stupid::ExprList;
+
+use strict;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{expressions} = [];
+
+    return $self;
+}
+
+sub appendExpr {
+    my $self = shift;
+    my $expr = shift;
+
+    push @{$self->{expressions}}, $expr;
+}
+
+package Stupid::MemberCall;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $owner = shift;
+    my $member = shift;
+    my $args = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{owner} = $owner;
+    $self->{member} = $member;
+    $self->{args} = $args;
+
+    return $self;
 }
 
 package Stupid::Comment;
@@ -1022,6 +1079,19 @@ sub value {
     my $self = shift;
 
     $self->{var}->setValue($self->{init}->value());
+}
+
+package Stupid::Type::OStream;
+
+use strict;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    return $self;
 }
 
 package Stupid::Type::UInt32;
