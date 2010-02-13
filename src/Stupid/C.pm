@@ -102,7 +102,7 @@ sub Stupid::MemberCall::emitCode {
     print '->info, ';
     # end of hack
     $self->{args}->emitCode();
-    print ');';
+    print ");\n";
 }
 
 sub Stupid::ExprList::emitCode {
