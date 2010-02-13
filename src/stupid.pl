@@ -550,7 +550,7 @@ sub new {
     return $self;
 }
 
-package Stupid::LE8;
+package Stupid::Le8;
 
 use strict;
 
@@ -571,7 +571,7 @@ sub new {
 }
 
 
-package Stupid::GE8;
+package Stupid::Ge8;
 
 use strict;
 

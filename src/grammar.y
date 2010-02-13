@@ -72,9 +72,9 @@ expr	:	expr 'and32' expr
 	|	expr 'eq32' expr
 	    { new Stupid::Eq32($_[1], $_[3]); }
 	|	expr 'ge8' expr
-	    { new Stupid::GE8($_[1], $_[3]); }
+	    { new Stupid::Ge8($_[1], $_[3]); }
 	|	expr 'le8' expr
-	    { new Stupid::LE8($_[1], $_[3]); }
+	    { new Stupid::Le8($_[1], $_[3]); }
 	|	expr 'lshift32' expr
 	    { new Stupid::LShift32($_[1], $_[3]); }
 	|	expr 'lshift8' expr
@@ -132,9 +132,9 @@ decl	:	type vardecl '=' VALUE
 	;
 
 type	:	'uint32'
-	    { new Stupid::Type::UInt32() }
+	    { new Stupid::Type::UInt32(); }
 	|	'uint8'
-	    { new Stupid::Type::UInt8() }
+	    { new Stupid::Type::UInt8(); }
 	;
 
 arrayval :	'(' val_list ')'
