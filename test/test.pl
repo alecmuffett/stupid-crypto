@@ -16,37 +16,42 @@ opendir(D, '.') || croak "Can't open .: $!";
 my @tests = sort grep { /\.stupid$/ } readdir(D);
 closedir(D);
 
+my $failed = 0;
+my $skipped = 0;
+my $ran = 0;
 for my $test (@tests) {
+    ++$ran;
     my($base) = $test =~ /^(.*)\.stupid$/;
     print "$base...";
     my $code = read_file("$test");
     if($code =~ /^"EXPECT([^:]*):([^"]*)"/m) {
 	my $expect_status = $1;
 	my $expect_output = $2;
+	my $status;
+	my $output;
 	if(system("./build-$language.sh $base")) {
-	    if($expect_status eq '-BUILD-FAIL') {
-		print 'OK';
-	    } else {
-		print "BUILD FAIL";
-	    }
+	    $status = '-BUILD-FAIL';
+	    $output = '';
 	} else {
-	    if($expect_status eq '') {
-		open(my $f, "generated/$base |");
-		my $got = read_file($f);
-		close $f;
-		if($expect_output eq $got) {
-		    print 'OK';
-		} else {
-		    print "FAIL (expected '$expect_output', got '$got')";
-		}
-	    } else {
-		print "FAIL (expected status $expect_status, got build success)";
-	    }
+	    open(my $f, "generated/$base |");
+	    $status = '';
+	    $output = read_file($f);
+	    close $f;
+	}
+	if($expect_status ne $status) {
+	    print "FAIL (expected status $expect_status, got $status)";
+	    ++$failed;
+	} elsif($expect_output ne $output) {
+	    print "FAIL (expected '$expect_output', got '$output')";
+	    ++$failed;
+	} else {
+	    print 'OK';
 	}
     } else {
 	print 'skip';
+	++$skipped;
     }
     print "\n";
 }
 
-
+print "Ran $ran tests, $failed failed, $skipped skipped.\n";
