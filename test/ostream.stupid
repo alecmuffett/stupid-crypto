@@ -1,3 +1,5 @@
+"EXPECT:Hello, world!";
+
 function() test(ostream out) {
   array(uint8, 13) hello = ( "Hello, world!" );
   uint32 n = 0;
