@@ -1,3 +1,5 @@
+"EXPECT-BUILD-FAIL:";
+
 function (uint8 i) foo (uint8 x) {
 "this second declaration of i should cause an error";
 uint8 i = 0;
