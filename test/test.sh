@@ -12,12 +12,12 @@ function onexit() {
     exit $exit_status
 }
 
-LANG=$1
+TARGETLANG=$1
 
 for a in *.stupid; do 
   BN=$(basename -s .stupid $a)
-  echo -n "testing ${BN} in ${LANG} ... "
-  ./build-${LANG}.sh ${BN} >/tmp/stupid.$$ 2>&1
+  echo -n "testing ${BN} in ${TARGETLANG} ... "
+  ./build-${TARGETLANG}.sh ${BN} >/tmp/stupid.$$ 2>&1
   if [ "$?" = "0" ] ; then
     ./${BN} >/dev/null 2>&1
     if [ "$?" = "0" ] ; then
