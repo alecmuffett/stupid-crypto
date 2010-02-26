@@ -1,8 +1,15 @@
 #include <stdio.h>
 
 #include <sys/types.h>
+
+#ifdef __APPLE__
+typedef u_int32_t uint32;
+typedef u_int8_t uint8;
+#else
 typedef uint32_t uint32;
 typedef uint8_t uint8;
+#endif
+
 
 typedef struct
     {
