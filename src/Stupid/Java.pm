@@ -162,9 +162,10 @@ sub Stupid::Set::emitCode {
     my $self = shift;
 
     $self->{left}->emitLValue();
-    print '.value = /*Y*/ (';
+    print ' = /*Y*/ (';
     print $self->{left}->{type}->typeName();
     print ')(';
+    $self->{right}->{expectedType} = $self->{left}->{type};
     $self->{right}->emitCode();
     print ')';
 }
@@ -186,11 +187,12 @@ sub Stupid::Variable::emitDeclaration {
     my $init = shift;
 
     $self->{type}->emitDeclaration($self->{name});
-    print " = new ";
-    $self->{type}->emitDeclaration("");
-    print "();\n";
-    print "$self->{name} ";
-    print '.value = /*X*/ (';
+    print " = ";
+    $self->{type}->emitConstructor();
+    print ";\n";
+    $init->{expectedType} = $self->{type};
+    $self->emitLValue();
+    print ' = /*X*/ (';
     print $self->{type}->typeName();
     print ')(';
     $init->emitCode();
@@ -201,7 +203,7 @@ sub Stupid::Variable::emitCode {
     my $self = shift;
 
     print $self->{name};
-    print ".value";
+    print $self->{type}->accessor();
 }
 
 sub Stupid::Variable::emitLValue {
@@ -209,12 +211,17 @@ sub Stupid::Variable::emitLValue {
 
     $self->{type}->dereference() if $self->{isReturn};
     print $self->{name};
+    print $self->{type}->accessor();
 }
 
 sub Stupid::Type::UInt32::dereference {
     my $self = shift;
 
     print '';
+}
+
+sub Stupid::Type::UInt32::accessor {
+    return '.value';
 }
 
 sub Stupid::Type::UInt32::emitReturnDecl {
@@ -237,6 +244,12 @@ sub Stupid::Type::UInt32::emitDeclaration {
 
     print "Mutable<Long> $name";
 }
+
+sub Stupid::Type::UInt32::emitConstructor {
+    my $self = shift;
+    print " new Mutable<Long>()";
+}
+
 
 sub Stupid::Type::UInt32::typeName {
     my $self = shift;
@@ -264,12 +277,20 @@ sub Stupid::Type::UInt8::emitDeclaration {
     print "Mutable<Short> $name";
 }
 
+sub Stupid::Type::UInt8::emitConstructor {
+    my $self = shift;
+    print " new Mutable<Short>()";
+}
+
 sub Stupid::Type::UInt8::dereference {
     my $self = shift;
 
     print '';
 }
 
+sub Stupid::Type::UInt8::accessor {
+    return '.value';
+}
 
 sub Stupid::Type::UInt8::emitReturnDecl {
     my $self = shift;
@@ -283,6 +304,10 @@ sub Stupid::Type::OStream::emitArg {
     my $name = shift;
 
     print "stupid_ostream *$name";
+}
+
+sub Stupid::Type::Array::accessor {
+    return ""; # arrays don't get wrapped inside anything so no need to unwrap them
 }
 
 sub Stupid::Type::Array::emitReturnDecl {
@@ -306,8 +331,30 @@ sub Stupid::Type::Array::emitDeclaration {
     print $self->{type}->typeName(), ' ', $name, '[]';
 }
 
+# TODO should initialise to default values? (all 0s for numerics)
+# Using null here means that arrays will not work unless they're
+# explicitly initialised
+
+sub Stupid::Type::Array::emitConstructor {
+    my $self = shift;
+    print " null ";
+}
+
+
+sub Stupid::Type::Array::typeName {
+    my $self = shift;
+    my $tn = $self->{type}->typeName();
+    return "${tn}[]";
+}
+
 sub Stupid::ArrayRef::emitLValue {
     my $self = shift;
+
+    # now why is .value appended here? TODO
+    # what kind of object is the array here? apparently not clearly an array
+    # hmm... its a Stupid::Variable that knows it has a type of
+    # Stupid::Type::Array so we should be able to make Stupid::Variable
+    # change its behaviour there...
 
     $self->{array}->emitCode();
     print '[(int)';
@@ -335,8 +382,8 @@ sub Stupid::DecimalValue::emitCode {
 
 sub Stupid::ArrayValue::emitCode {
     my $self = shift;
-
-    print '{ ';
+    my $tn = $self->{expectedType}->typeName();
+    print "new $tn { ";
     my $first = 1;
     foreach my $v (@{$self->value()}) {
 	print ', ' if !$first;
