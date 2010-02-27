@@ -11,6 +11,9 @@ testC: generated
 testH: generated
 	./test.sh Haskell
 
+testJ: generated
+	./test.sh Java
+
 generated/sha256.c: sha256.stupid ../src/stupid.pl ../src/Stupid/C.pm
 	./build-C.sh sha256
 
