@@ -164,6 +164,8 @@ sub Stupid::Set::emitCode {
     $self->{left}->emitLValue();
     print ' = /*Y*/ (';
     print $self->{left}->{type}->typeName();
+    # when this is an array access, then we don't get a type object here...
+
     print ')(';
     $self->{right}->{expectedType} = $self->{left}->{type};
     $self->{right}->emitCode();
@@ -347,19 +349,22 @@ sub Stupid::Type::Array::typeName {
     return "${tn}[]";
 }
 
+sub Stupid::Type::Array::memberType {
+    my $self = shift;
+    return $self->{type};
+}
+
 sub Stupid::ArrayRef::emitLValue {
     my $self = shift;
 
-    # now why is .value appended here? TODO
-    # what kind of object is the array here? apparently not clearly an array
-    # hmm... its a Stupid::Variable that knows it has a type of
-    # Stupid::Type::Array so we should be able to make Stupid::Variable
-    # change its behaviour there...
-
+    # we'll set our own type information here
+    # it might be better at some type propagation stage,
+    # but for now, whatever...
+    $self->{type} = $self->{array}->{type}->memberType();
     $self->{array}->emitCode();
-    print '[(int)';
+    print '[(int)(0+('; # now that makes unboxing happen, which wouldn't otherwise
     $self->{offset}->emitCode();
-    print ']';
+    print '))]';
 }
 
 sub Stupid::ArrayRef::emitCode {
