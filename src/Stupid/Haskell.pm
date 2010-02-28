@@ -474,7 +474,7 @@ sub Stupid::Eq32::emitCode {
     print ')';
 }
 
-sub Stupid::GE8::emitCode {
+sub Stupid::Ge8::emitCode {
     my $self = shift;
 
     print '(';
@@ -484,7 +484,7 @@ sub Stupid::GE8::emitCode {
     print ')';
 }
 
-sub Stupid::LE8::emitCode {
+sub Stupid::Le8::emitCode {
     my $self = shift;
 
     print '(';
@@ -496,7 +496,7 @@ sub Stupid::LE8::emitCode {
 
 
 
-sub Stupid::GE32::emitCode {
+sub Stupid::Ge32::emitCode {
     my $self = shift;
 
     print '(';
