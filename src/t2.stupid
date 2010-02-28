@@ -1,0 +1,2 @@
+# EXPECT: failure
+uint32 h = 0x123456789
