@@ -162,7 +162,7 @@ sub Stupid::Set::emitCode {
     my $self = shift;
 
     $self->{left}->emitLValue();
-    print ' = /*Y*/ (';
+    print ' =  (';
     print $self->{left}->{type}->typeName();
     # when this is an array access, then we don't get a type object here...
 
@@ -194,7 +194,7 @@ sub Stupid::Variable::emitDeclaration {
     print ";\n";
     $init->{expectedType} = $self->{type};
     $self->emitLValue();
-    print ' = /*X*/ (';
+    print ' = (';
     print $self->{type}->typeName();
     print ')(';
     $init->emitCode();
