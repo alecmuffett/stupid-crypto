@@ -1,6 +1,7 @@
 package Stupid::Java;
 
 use strict;
+use File::Basename;
 
 # a note on mapping between java types and stupid types:
 # for now, I'm using a "bigger" signed Java type (more bits)
@@ -16,10 +17,23 @@ use strict;
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
+    my $className = basename($self->{sourceFile},".stupid");
+    $className =~ s/-/_/g ;
+
+    my %javakeys = (
+        'int' => 'Xint'
+    );
+
+    # clearly this list is not exhaustive...
+
+    if( exists $javakeys{$className}) { 
+      $className = $javakeys{$className};
+    }
+
     # this should eventually be public. to do that the name of the
     # class needs to correspond to the name of the generated .java file
     print "import Stupid.Mutable;\n";
-    print "class StupidGenerated {\n";
+    print "class $className {\n";
     $self->{tree}->emitCode();
     print "}\n";
 }
@@ -35,7 +49,7 @@ sub Stupid::FunctionList::emitCode {
 sub Stupid::Function::emitCode {
     my $self = shift;
 
-    print 'public void ', $self->{name}, '(';
+    print 'public static void ', $self->{name}, '(';
     my $first = $self->{returns}->emitReturnDecls();
     $self->{args}->emitArgs($first);
     print ") {\n";
@@ -162,7 +176,7 @@ sub Stupid::Set::emitCode {
     my $self = shift;
 
     $self->{left}->emitLValue();
-    print ' = /*Y*/ (';
+    print ' =  (';
     print $self->{left}->{type}->typeName();
     # when this is an array access, then we don't get a type object here...
 
@@ -194,7 +208,7 @@ sub Stupid::Variable::emitDeclaration {
     print ";\n";
     $init->{expectedType} = $self->{type};
     $self->emitLValue();
-    print ' = /*X*/ (';
+    print ' = (';
     print $self->{type}->typeName();
     print ')(';
     $init->emitCode();

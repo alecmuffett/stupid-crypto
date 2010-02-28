@@ -36,6 +36,7 @@ use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
 #$::Context->dumpSymbols();
 
 my $wrapped = new Stupid::LanguageWrapper($ptree);
+$wrapped->{sourceFile} = $sourceFile;
 
 eval "use Stupid::$language";
 croak $@ if $@;
