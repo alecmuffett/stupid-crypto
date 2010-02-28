@@ -6,7 +6,7 @@ generated:
 	mkdir generated
 
 testC: generated
-	./test.sh C
+	./test.pl -language=C
 
 testH: generated
 	./test.sh Haskell
