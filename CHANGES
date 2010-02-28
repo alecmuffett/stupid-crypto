@@ -1,3 +1,7 @@
+28/2/2010   The beginnings of a Java backend, sufficient to run rot13
+            correctly.
+            [Ben Clifford]
+
 7/2/2010    First working SHA-256 implementation
             [Ben Laurie]
 
