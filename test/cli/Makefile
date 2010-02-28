@@ -14,5 +14,5 @@ stupid-haskell-sha256sum: sha256.hs sha256cli.hs
 	ghc -i../../lib:. --make sha256.hs sha256cli.hs -o stupid-haskell-sha256sum
 
 stupid-haskell-rot13: rot13.hs rot13cli.hs
-	ghc -i../../lib:. --make rot13.hs rot13cli.hs -o stupid-haskell-rot13sum
+	ghc -i../../lib:. --make rot13.hs rot13cli.hs -o stupid-haskell-rot13
 
