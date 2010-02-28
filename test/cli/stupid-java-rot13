@@ -1,0 +1,4 @@
+#!/bin/sh
+java -cp .:../generated:../../lib Rot13cli
+
+
