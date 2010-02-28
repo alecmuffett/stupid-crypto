@@ -12,10 +12,6 @@ main = do
   hPutStrLn stderr "ROT13 Stupid-Haskell commandline tool"
   interact rot13string
 
--- stretching out the input to have enough space for padding bits
--- should be done inside the sha256 stupid code, not in the calling haskell
--- code, I think.
-
 rot13string :: String -> String
 rot13string inputString = map rot13char inputString
 
