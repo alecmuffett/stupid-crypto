@@ -16,7 +16,6 @@ sub Stupid::LanguageWrapper::emitCode {
     print "import Data.STRef\n";
     print "import Control.Monad.ST\n";
     print "import StupidStuff\n";
-    print "main = do { putStrLn \"Test\"; {- print \$ runST prog -} }\n\n";
 #    print "prog = ";
     $self->{tree}->emitCode();
 }
