@@ -11,7 +11,7 @@ testC: generated-dirs
 	./test.pl -language=C
 
 testH: generated-dirs
-	./test.sh Haskell
+	./test.pl -language=Haskell
 
 testJ: generated-dirs
 	./test.pl -language=Java
