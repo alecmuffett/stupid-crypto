@@ -1,12 +1,16 @@
 module StupidStuff where
 
   import Data.Bits
+  import Data.Char
+  import Data.IORef
   import Data.Word
   import Data.STRef
 
   import Control.Applicative
   import Control.Monad
   import Control.Monad.ST
+
+  import System.IO
 
 -- -- -- stupid data types -- -- --
 
@@ -165,7 +169,7 @@ module StupidStuff where
 
 
   -- array (list) access
-  (!!!) :: (Integral ix) => (ST s [STRef s a]) -> (ST s ix) -> (ST s (STRef s a))
+  (!!!) :: (Integral ix) => (IO [IORef a]) -> (IO ix) -> (IO (IORef a))
   list !!! ix = do
     listV <- list
     ixV <- ix
@@ -199,24 +203,24 @@ module StupidStuff where
 
 -- applies b to the a, except that a is a monadic action giving the parameter
 -- rather than the value itself
-  ($<) :: (a -> ST s b) -> (ST s a) -> (ST s b)
+  ($<) :: (a -> IO b) -> (IO a) -> (IO b)
   b $< a = do
     intermediate <- a;
     b intermediate
 
 -- this could go in applicative functor syntax too but I'm not trying to
 -- do that right now...
-  writeSTRefInST :: (ST s (STRef s t)) -> t -> ST s ()
-  writeSTRefInST loc val = do
+  writeIORefInIO :: (IO (IORef t)) -> t -> IO ()
+  writeIORefInIO loc val = do
     locV <- loc
-    writeSTRef locV val
+    writeIORef locV val
 
   -- while the first parameter returns true, keep running the second
   -- parameter
   -- probably need tail recursion to stop stack exploding - not sure if
   -- this form is tail recursive in the right way?
   -- stupidwhile :: (Monad m) => (m Bool) -> m () -> m ()
-  stupidwhile :: (ST s Bool) -> ST s () -> ST s ()
+  stupidwhile :: (IO Bool) -> IO () -> IO ()
   stupidwhile condition body = do
     go <- condition
     if go then do
@@ -225,4 +229,10 @@ module StupidStuff where
      else
       return ()
     
+  writeToOutputStream :: IO Handle -> IO Uint8 -> IO ()
+  writeToOutputStream hr vr = do
+    h <- hr
+    v <- vr
+    hPutChar h (chr $ fromIntegral v)
+    return ()
 

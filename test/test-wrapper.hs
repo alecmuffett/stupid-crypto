@@ -1,5 +1,9 @@
 
 import StupidGenerated
 import System.IO
+import Data.IORef
 
-main = test stdout
+main = do
+  stdoutRef <- newIORef stdout
+  test stdoutRef
+

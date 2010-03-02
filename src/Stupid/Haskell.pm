@@ -13,8 +13,9 @@ sub Stupid::LanguageWrapper::emitCode {
 
 # TODO these imports could be re-exported by StupidStuff
     print "module StupidGenerated where\n";
-    print "import Data.STRef\n";
+    print "import Data.IORef\n";
     print "import Control.Monad.ST\n";
+    print "import System.IO\n";
     print "import StupidStuff\n";
 #    print "prog = ";
     $self->{tree}->emitCode();
@@ -43,7 +44,7 @@ sub Stupid::Function::emitCode {
     $first = $self->{returns}->emitReturnTypes();
     $first = $self->{args}->emitArgTypes($first);
     print " -> " if !$first;
-    print " ST s ()\n";
+    print " IO ()\n";
 
     # second the body
     print $self->{name}, ' ' ;
@@ -62,7 +63,7 @@ sub Stupid::ArgList::emitArgTypes {
 
     for my $arg (@{$self->{args}}) {
         print ' -> ' if !$first;
-	print "STRef s ";
+	print "IORef ";
         $arg->emitHaskellType();
         $first = 0;
     }
@@ -76,7 +77,7 @@ sub Stupid::ArgList::emitReturnTypes {
     my $first = 1;
     for my $arg (@{$self->{args}}) {
         print '->' if !$first;
-        print "STRef s ";
+        print "IORef ";
         $arg->emitHaskellType();
         $first = 0;
     }
@@ -133,6 +134,42 @@ sub Stupid::Variable::emitArg {
     print $self->{name};
     # $self->{type}->emitArg($self->{name});
 }
+
+sub Stupid::Type::OStream::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    print "OutputStream $name";
+}
+
+sub Stupid::Type::OStream::accessor {
+    return '';
+}
+
+sub Stupid::Type::OStream::emitHaskellType {
+    print "Handle";
+}
+
+sub Stupid::MemberCall::emitCode {
+    my $self = shift;
+
+    my $m = $self->{member};
+
+
+    my %methods = (
+        'put' => 'writeToOutputStream'
+    );
+
+    $m = $methods{$m};
+
+    print "($m)";
+    print '(';
+    $self->{owner}->emitCode();
+    print ') (';
+    $self->{args}->emitCode();
+    print ");\n";
+}
+
 
 # FUNCTODO
 sub Stupid::Type::UInt32::emitArg {
@@ -210,6 +247,20 @@ sub Stupid::Statement::emitCode {
     print ";";
 }
 
+# if this is only used for parameters to functions, maybe needs
+# $< as separator?
+
+sub Stupid::ExprList::emitCode {
+    my $self = shift;
+
+    my $first = 1;
+    for my $expr (@{$self->{expressions}}) {
+        print " (";
+        $expr->emitCode();
+        print ") ";
+    }
+}
+
 sub Stupid::If::emitCode {
     my $self = shift;
 
@@ -261,7 +312,7 @@ sub Stupid::Set::emitCode {
 # should be able to pull the InST out into its own operator using
 # applicative functor syntax, but I don't have my head around that at
 # the moment...
-    print '(writeSTRefInST (';
+    print '(writeIORefInIO (';
     $self->{left}->emitLValue();
     print ' )) $< ( ';
     $self->{right}->emitCode();
@@ -271,7 +322,7 @@ sub Stupid::Set::emitCode {
 
 #    print "do { writeInternalVar<-";
 #    $self->{right}->emitCode();
-#    print "; writeSTRef ( " ;
+#    print "; writeIORef ( " ;
 #    $self->{left}->emitLValue();
 #    print ") writeInternalVar } \n";
 }
@@ -298,9 +349,9 @@ sub Stupid::Variable::emitDeclaration {
 
     # now create a STRef for this variable and assign the initial value
     print $self->{name};
-    print ' <- (newSTRef $< ( (';
+    print ' <- (newIORef $< ( (';
     $init->emitCode();
-    print ') :: ST s  ';
+    print ') :: IO  ';
     $self->{type}->emitHaskellType();
     print "));\n"
 # I don't know how to emit types for arrays as they are represented here
@@ -308,7 +359,7 @@ sub Stupid::Variable::emitDeclaration {
 
     # (do { assignV <- ';  # TODO assignV might clash with the namespace of stupid variables (and in general, stupid variable names shouldn't be permitted to clash with haskell symbols that may be defined elsewhere, so probably should mangle them...)
     #$init->emitCode();
-    #print ' ; newSTRef ( assignV ';
+    #print ' ; newIORef ( assignV ';
     ### print ' :: ';
     ### $self->{type}->emitHaskellType();
     ### This works for single values, but seems to get upset with STRefs as
@@ -319,7 +370,7 @@ sub Stupid::Variable::emitDeclaration {
 
 sub Stupid::Variable::emitCode {
     my $self = shift;
-    print "(readSTRef (";
+    print "(readIORef (";
     print $self->{name};
     print "))"
 }
@@ -371,7 +422,7 @@ sub Stupid::Type::Array::emitHaskellType {
     my $self = shift;
     my $name = shift;
 
-    print ' [STRef s ',$self->{type}->typeName(), '] ';
+    print ' [IORef ',$self->{type}->typeName(), '] ';
 
     # TODO populate members ... '[', $self->{size}->value(), ']';
 }
@@ -387,7 +438,7 @@ sub Stupid::ArrayRef::emitLValue {
 
 sub Stupid::ArrayRef::emitCode {
     my $self = shift;
-    print '( readSTRef $< (';
+    print '( readIORef $< (';
     $self->emitLValue();
     print '))';
 }
@@ -413,7 +464,7 @@ sub Stupid::ArrayValue::emitCode {
 
     #TODO this should be STRefs. (actually ideally would be MArrays but I
     # can't get those sorted in my head, typewise)
-    print '(do { r <- mapM (\a -> do { nxv <- a ; newSTRef nxv }) [ ';
+    print '(do { r <- mapM (\a -> do { nxv <- a ; newIORef nxv }) [ ';
     my $first = 1;
     foreach my $v (@{$self->value()}) {
 	print ', ' if !$first;
