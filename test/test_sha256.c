@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "generated/sha256.c"
+#include "generated/C/sha256.c"
 
 int main(int argc, char **argv)
     {

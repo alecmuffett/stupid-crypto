@@ -33,7 +33,7 @@ for my $test (@tests) {
 	    $status = '-BUILD-FAIL';
 	    $output = '';
 	} else {
-	    open(my $f, "generated/$base |");
+	    open(my $f, "generated/$language/$base |");
 	    $status = '';
 	    $output = read_file($f);
 	    close $f;

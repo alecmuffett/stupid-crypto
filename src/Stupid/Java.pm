@@ -32,6 +32,8 @@ sub Stupid::LanguageWrapper::emitCode {
 
     # this should eventually be public. to do that the name of the
     # class needs to correspond to the name of the generated .java file
+    print "import java.io.IOException;\n";
+    print "import java.io.OutputStream;\n";
     print "import Stupid.Mutable;\n";
     print "class $className {\n";
     $self->{tree}->emitCode();
@@ -52,7 +54,10 @@ sub Stupid::Function::emitCode {
     print 'public static void ', $self->{name}, '(';
     my $first = $self->{returns}->emitReturnDecls();
     $self->{args}->emitArgs($first);
-    print ") {\n";
+    print ") throws IOException {\n";
+    # should only throw IOException if we're dealing with IO in this
+    # function (which is if we have inputstream and outputstream
+    # parameters?)
     $self->{body}->emitCode();
     print "}\n";
 }
@@ -114,15 +119,21 @@ sub Stupid::Statement::emitCode {
     print ";\n";
 }
 
+#hmmm
 sub Stupid::MemberCall::emitCode {
     my $self = shift;
 
+    my $m = $self->{member};
+
+
+    my %methods = (
+        'put' => 'write'
+    );
+
+    $m = $methods{$m};
+
     $self->{owner}->emitCode();
-    print "->$self->{member}(";
-    # something of a hack at this stage
-    $self->{owner}->emitCode();
-    print '->info, ';
-    # end of hack
+    print ".$m(";
     $self->{args}->emitCode();
     print ");\n";
 }
@@ -319,7 +330,11 @@ sub Stupid::Type::OStream::emitArg {
     my $self = shift;
     my $name = shift;
 
-    print "stupid_ostream *$name";
+    print "OutputStream $name";
+}
+
+sub Stupid::Type::OStream::accessor {
+    return '';
 }
 
 sub Stupid::Type::Array::accessor {

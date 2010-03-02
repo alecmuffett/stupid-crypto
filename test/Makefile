@@ -2,22 +2,24 @@ CFLAGS = -Wall -Werror -g
 
 test: testC testH
 
-generated:
-	mkdir generated
+generated-dirs:
+	mkdir -p generated/C
+	mkdir -p generated/Haskell
+	mkdir -p generated/Java
 
-testC: generated
+testC: generated-dirs
 	./test.pl -language=C
 
-testH: generated
+testH: generated-dirs
 	./test.sh Haskell
 
-testJ: generated
-	./test.sh Java
+testJ: generated-dirs
+	./test.pl -language=Java
 
-generated/sha256.c: sha256.stupid ../src/stupid.pl ../src/Stupid/C.pm
+generated/C/sha256.c: sha256.stupid ../src/stupid.pl ../src/Stupid/C.pm
 	./build-C.sh sha256
 
-test_sha256.o: test_sha256.c generated/sha256.c
+test_sha256.o: test_sha256.c generated/C/sha256.c
 
 test_sha256: test_sha256.o
 	$(CC) $(CFLAGS) -o test_sha256 test_sha256.o
