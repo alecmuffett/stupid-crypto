@@ -1,6 +1,6 @@
-"EXPECT:Hello, world!";
+"EXPECT-BUILD-FAIL:";
 
-function(ostream out) test() {
+function() test(ostream out) {
   array(uint8, 13) hello = ( "Hello, world!" );
   uint32 n = 0;
 

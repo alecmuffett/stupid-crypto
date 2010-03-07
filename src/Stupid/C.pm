@@ -2,6 +2,8 @@ package Stupid::C;
 
 use strict;
 
+use Carp;
+
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
@@ -266,11 +268,15 @@ sub Stupid::Type::UInt8::emitReturnDecl {
     print "uint8 *$name";
 }
 
-sub Stupid::Type::OStream::emitArg {
+sub Stupid::Type::OStream::emitReturnDecl {
     my $self = shift;
     my $name = shift;
 
     print "stupid_ostream *$name";
+}    
+
+sub Stupid::Type::OStream::emitArg {
+    croak "ostreams must be outputs";
 }
 
 sub Stupid::Type::Array::emitReturnDecl {
