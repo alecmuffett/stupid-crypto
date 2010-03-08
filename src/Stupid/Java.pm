@@ -326,7 +326,7 @@ sub Stupid::Type::UInt8::emitReturnDecl {
     print "Mutable<Short> $name";
 }
 
-sub Stupid::Type::OStream::emitArg {
+sub Stupid::Type::OStream::emitReturnDecl {
     my $self = shift;
     my $name = shift;
 
