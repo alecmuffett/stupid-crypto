@@ -1,0 +1,10 @@
+"EXPECT-BUILD-FAIL:";
+
+function() test(ostream out) {
+  out.put(65);
+}
+
+function (uint8 i) broken (uint8 x) {
+"this second declaration of i should cause an error";
+uint8 i = 0;
+}

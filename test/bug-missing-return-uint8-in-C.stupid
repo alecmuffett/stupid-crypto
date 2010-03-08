@@ -1,0 +1,3 @@
+function (uint8 i) foo (uint8 x) {
+  i = 0;
+}
