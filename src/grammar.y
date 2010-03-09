@@ -2,24 +2,46 @@
 
 %%
 
-prog	:	functions
+prog	: toplevel_list
 	    { $_[1]; }
 	;
 
-functions :	functions function
-	    { $_[1]->appendFunction($_[2]); $_[1]; }
+toplevel_list : toplevel_list toplevel
+	    { $_[1]->appendTopLevel($_[2]); $_[1]; }
+	| toplevel
+	    { my $t = new Stupid::TopLevelList();
+	      $t->appendTopLevel($_[1]);
+	      $t; }
+	;
+
+toplevel : comment
 	| function
-	    { my $t1 = new Stupid::FunctionList();
-	      $t1->appendFunction($_[1]);
-	      $t1; }
+	| struct_decl
+	;
+
+struct_decl :	'struct' WORD '(' abstract_decl_list ')' ';'
+	    { new Stupid::Type::Struct($_[2], $_[4]); }
+	;
+
+abstract_decl_list : abstract_decl_list ',' abstract_decl
+	    { $_[1]->appendAbstractDecl($_[3]); $_[1]; }
+	| abstract_decl
+	    { my $t = new Stupid::AbstractDeclList();
+	      $t->appendAbstractDecl($_[1]);
+	      $t; }
+	;
+
+abstract_decl :	type vardecl
+	    { new Stupid::AbstractDeclare($_[1], $_[2]); }
+	|	'array' '(' type ',' VALUE ')'
+	    { new Stupid::AbstractDeclare(
+				  new Stupid::Type::Array($_[3], $_[5])); }
 	;
 
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
 	      new Stupid::Function($_[5], $_[3], $_[7], $_[10]); }
-	| comment ';'
-	    { $_[1]; }
 	;
 
 arglist :	arglist ',' arg
@@ -137,6 +159,8 @@ decl	:	type vardecl '=' VALUE
 	    { new Stupid::Declare($::Context,
 		  new Stupid::Variable(new Stupid::Type::Array($_[3], $_[5]),
 				       $_[7]), $_[9]); }
+	|	'struct' WORD vardecl '=' arrayval
+	    { new Stupid::Declare($::Context, new Stupid::Variable(new Stupid::Type::StructInstance($_[2]), $_[3]), $_[5]); }
 	;
 
 type	:	'uint32'
