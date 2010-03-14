@@ -30,7 +30,7 @@ my $ptree = $parser->YYParse(yylex => \&lexer,
 			     yyerror => \&yyerror,
 			     yydebug => $debug ? 6 : 0);
 
-use Data::Dumper; print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
+use Data::Dumper; Data::Dumper->Indent(1); print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
 
 #$ptree->value();
 #$::Context->dumpSymbols();
@@ -47,7 +47,7 @@ exit 0;
 
 sub initLexer {
     @keywords = qw(array uint8 uint32 ostream
- function if else while
+ function struct if else while
  and8 and32 band bor eq32 ge8 le8 lshift32 lshift8 mask32to8 minus8 minus32
  mod8 mod32 ne32 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
  xor32);
@@ -243,7 +243,9 @@ sub new {
     return $self;
 }
 
-package Stupid::FunctionList;
+package Stupid::TopLevelList;
+
+# FIXME: topl-level classes should inherit from a TopLevel class.
 
 use strict;
 
@@ -253,16 +255,90 @@ sub new {
     my $self = {};
     bless $self, $class;
 
-    $self->{functions} = [];
+    $self->{topLevels} = [];
 
     return $self;
 }
 
-sub appendFunction {
+sub appendTopLevel {
     my $self = shift;
-    my $fn = shift;
+    my $tl = shift;
 
-    push @{$self->{functions}}, $fn;
+    push @{$self->{topLevels}}, $tl;
+}
+
+package Stupid::Type::Struct;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $name = shift;
+    my $decls = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{name} = $name;
+    $self->{decls} = $decls;
+
+    return $self;
+}
+
+package Stupid::Type::StructInstance;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $name = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{name} = $name;
+
+    return $self;
+}
+
+package Stupid::AbstractDeclare;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $type = shift;
+    my $name = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{type} = $type;
+    $self->{name} = $name;
+
+    return $self;
+}
+
+package Stupid::AbstractDeclList;
+
+use strict;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{decls} = [];
+
+    return $self;
+}
+
+sub appendAbstractDecl {
+    my $self = shift;
+    my $decl = shift;
+
+    push @{$self->{decls}}, $decl;
 }
 
 package Stupid::ExprList;
@@ -287,7 +363,25 @@ sub appendExpr {
     push @{$self->{expressions}}, $expr;
 }
 
-package Stupid::MemberCall;
+package Stupid::FunctionCall;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $function = shift;
+    my $args = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{function} = $function;
+    $self->{args} = $args;
+
+    return $self;
+}
+
+package Stupid::MemberRef;
 
 use strict;
 
@@ -295,14 +389,12 @@ sub new {
     my $class = shift;
     my $owner = shift;
     my $member = shift;
-    my $args = shift;
 
     my $self = {};
     bless $self, $class;
 
     $self->{owner} = $owner;
     $self->{member} = $member;
-    $self->{args} = $args;
 
     return $self;
 }
