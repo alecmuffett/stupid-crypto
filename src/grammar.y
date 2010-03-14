@@ -2,24 +2,46 @@
 
 %%
 
-prog	:	functions
+prog	: toplevel_list
 	    { $_[1]; }
 	;
 
-functions :	functions function
-	    { $_[1]->appendFunction($_[2]); $_[1]; }
+toplevel_list : toplevel_list toplevel
+	    { $_[1]->appendTopLevel($_[2]); $_[1]; }
+	| toplevel
+	    { my $t = new Stupid::TopLevelList();
+	      $t->appendTopLevel($_[1]);
+	      $t; }
+	;
+
+toplevel : comment ';'
 	| function
-	    { my $t1 = new Stupid::FunctionList();
-	      $t1->appendFunction($_[1]);
-	      $t1; }
+	| struct_decl
+	;
+
+struct_decl :	'struct' WORD '(' abstract_decl_list ')' ';'
+	    { new Stupid::Type::Struct($_[2], $_[4]); }
+	;
+
+abstract_decl_list : abstract_decl_list ',' abstract_decl
+	    { $_[1]->appendAbstractDecl($_[3]); $_[1]; }
+	| abstract_decl
+	    { my $t = new Stupid::AbstractDeclList();
+	      $t->appendAbstractDecl($_[1]);
+	      $t; }
+	;
+
+abstract_decl :	type vardecl
+	    { new Stupid::AbstractDeclare($_[1], $_[2]); }
+	|	'array' '(' type ',' VALUE ')'
+	    { new Stupid::AbstractDeclare(
+				  new Stupid::Type::Array($_[3], $_[5])); }
 	;
 
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
 	      new Stupid::Function($_[5], $_[3], $_[7], $_[10]); }
-	| comment ';'
-	    { $_[1]; }
 	;
 
 arglist :	arglist ',' arg
@@ -55,12 +77,12 @@ statement :	decl ';'
 	    { $_[1]; }
 	|	var '=' expr ';'
 	    { new Stupid::Statement(new Stupid::Set($_[1], $_[3])); }
-	|	expr '.' WORD '(' exprlist ')' ';'
-	    { new Stupid::MemberCall($_[1], $_[3], $_[5]); }
 	| 	'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
 	    { new Stupid::If($_[3], $_[6], $_[10]); }
 	| 	'while' '(' expr ')' '{' statements '}'
 	    { new Stupid::While($_[3], $_[6]); }
+	|	call ';'
+	    { $_[1]; }
 	;
 
 expr	:	expr 'and32' expr
@@ -128,6 +150,13 @@ var	:	WORD
 	    { $::Context->findSymbol($_[1]); }
 	|	var '[' expr ']'
 	    { new Stupid::ArrayRef($_[1], $_[3]); }
+	|	expr '.' WORD
+	    { new Stupid::MemberRef($_[1], $_[3]); }
+	|	call
+	;
+
+call:	|	expr '(' exprlist ')'
+	    { new Stupid::FunctionCall($_[1], $_[3], $_[5]); }
 	;
 
 decl	:	type vardecl '=' VALUE
@@ -137,6 +166,8 @@ decl	:	type vardecl '=' VALUE
 	    { new Stupid::Declare($::Context,
 		  new Stupid::Variable(new Stupid::Type::Array($_[3], $_[5]),
 				       $_[7]), $_[9]); }
+	|	'struct' WORD vardecl '=' arrayval
+	    { new Stupid::Declare($::Context, new Stupid::Variable(new Stupid::Type::StructInstance($_[2]), $_[3]), $_[5]); }
 	;
 
 type	:	'uint32'
