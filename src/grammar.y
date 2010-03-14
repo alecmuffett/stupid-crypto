@@ -33,9 +33,9 @@ abstract_decl_list : abstract_decl_list ',' abstract_decl
 
 abstract_decl :	type vardecl
 	    { new Stupid::AbstractDeclare($_[1], $_[2]); }
-	|	'array' '(' type ',' VALUE ')'
+	|	'array' '(' type ',' VALUE ')' vardecl
 	    { new Stupid::AbstractDeclare(
-				  new Stupid::Type::Array($_[3], $_[5])); }
+			  new Stupid::Type::Array($_[3], $_[5]), $_[7]); }
 	;
 
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
@@ -182,12 +182,16 @@ arrayval :	'(' val_list ')'
 	    { $_[2]; }
 	;
 
-val_list :	val_list ',' VALUE
+val_list :	val_list ',' value
 	    { $_[1]->append($_[3]); $_[1]; }
-	|	VALUE
+	|	value
 	    { my $t = new Stupid::ArrayValue(); $t->append($_[1]); $t; }
 	|	STRING
 	    { Stupid::ArrayFromString($_[1]); }
+	;
+
+value   :       arrayval
+	|	VALUE
 	;
 
 vardecl	:	WORD
