@@ -25,10 +25,10 @@ sub Stupid::LanguageWrapper::emitCode {
     $self->{tree}->emitCode();
 }
 
-sub Stupid::FunctionList::emitCode {
+sub Stupid::TopLevelList::emitCode {
     my $self = shift;
 
-    for my $f (@{$self->{functions}}) {
+    for my $f (@{$self->{topLevels}}) {
 	$f->emitCode();
     }
 }
@@ -101,17 +101,34 @@ sub Stupid::Statement::emitCode {
     print ";\n";
 }
 
-sub Stupid::MemberCall::emitCode {
+sub Stupid::FunctionCall::emitCode {
+    my $self = shift;
+
+    $self->{function}->emitCode();
+    print '(';
+    $self->{function}->maybeAddSelf();
+    $self->{args}->emitCode();
+    print ");\n";
+}
+
+sub Stupid::MemberRef::emitCode {
     my $self = shift;
 
     $self->{owner}->emitCode();
-    print "->$self->{member}(";
-    # something of a hack at this stage
+    $self->{owner}->emitMemberRef($self->{member});
+}
+
+sub Stupid::MemberRef::maybeAddSelf {
+    my $self = shift;
+
+    $self->{owner}->maybeAddSelf();
+}
+
+sub Stupid::MemberRef::emitLValue {
+    my $self = shift;
+
     $self->{owner}->emitCode();
-    print '->info, ';
-    # end of hack
-    $self->{args}->emitCode();
-    print ");\n";
+    print ".$self->{member}";
 }
 
 sub Stupid::ExprList::emitCode {
@@ -194,11 +211,56 @@ sub Stupid::Variable::emitCode {
     print $self->{name};
 }
 
+sub Stupid::Variable::emitMemberRef {
+    my $self = shift;
+    my $name = shift;
+
+    print $self->{isReturn} ? '->' : '.';
+    print $name;
+}
+
 sub Stupid::Variable::emitLValue {
     my $self = shift;
 
     $self->{type}->dereference() if $self->{isReturn};
     print $self->{name};
+}
+
+sub Stupid::Variable::maybeAddSelf {
+    my $self = shift;
+
+    print "$self->{name}, " if $self->{type}->needsSelf();
+}
+
+sub Stupid::Type::Struct::emitCode {
+    my $self = shift;
+
+    print "struct $self->{name} {\n";
+    $self->{decls}->emitCode();
+    print "};\n";
+}
+
+sub Stupid::Type::StructInstance::emitDeclaration {
+    my $self = shift;
+    my $name = shift;
+
+    print "struct $self->{name} $name";
+}
+
+sub Stupid::AbstractDeclList::emitCode {
+    my $self = shift;
+
+    foreach my $decl (@{$self->{decls}}) {
+	$decl->emitCode();
+    }
+}
+
+sub Stupid::AbstractDeclare::emitCode {
+    my $self = shift;
+
+    print '  ';
+    $self->{type}->emitDeclaration($self->{name});
+    print ";\n";
 }
 
 sub Stupid::Type::UInt32::dereference {
@@ -277,6 +339,10 @@ sub Stupid::Type::OStream::emitReturnDecl {
 
 sub Stupid::Type::OStream::emitArg {
     croak "ostreams must be outputs";
+}
+
+sub Stupid::Type::OStream::needsSelf {
+    return 1;
 }
 
 sub Stupid::Type::Array::emitReturnDecl {

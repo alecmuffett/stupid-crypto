@@ -14,7 +14,7 @@ toplevel_list : toplevel_list toplevel
 	      $t; }
 	;
 
-toplevel : comment
+toplevel : comment ';'
 	| function
 	| struct_decl
 	;
@@ -77,12 +77,12 @@ statement :	decl ';'
 	    { $_[1]; }
 	|	var '=' expr ';'
 	    { new Stupid::Statement(new Stupid::Set($_[1], $_[3])); }
-	|	expr '.' WORD '(' exprlist ')' ';'
-	    { new Stupid::MemberCall($_[1], $_[3], $_[5]); }
 	| 	'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
 	    { new Stupid::If($_[3], $_[6], $_[10]); }
 	| 	'while' '(' expr ')' '{' statements '}'
 	    { new Stupid::While($_[3], $_[6]); }
+	|	call ';'
+	    { $_[1]; }
 	;
 
 expr	:	expr 'and32' expr
@@ -150,6 +150,13 @@ var	:	WORD
 	    { $::Context->findSymbol($_[1]); }
 	|	var '[' expr ']'
 	    { new Stupid::ArrayRef($_[1], $_[3]); }
+	|	expr '.' WORD
+	    { new Stupid::MemberRef($_[1], $_[3]); }
+	|	call
+	;
+
+call:	|	expr '(' exprlist ')'
+	    { new Stupid::FunctionCall($_[1], $_[3], $_[5]); }
 	;
 
 decl	:	type vardecl '=' VALUE

@@ -264,7 +264,7 @@ sub appendTopLevel {
     my $self = shift;
     my $tl = shift;
 
-    push @{$self->{functions}}, $tl;
+    push @{$self->{topLevels}}, $tl;
 }
 
 package Stupid::Type::Struct;
@@ -308,13 +308,13 @@ use strict;
 sub new {
     my $class = shift;
     my $type = shift;
-    my $decl = shift;
+    my $name = shift;
 
     my $self = {};
     bless $self, $class;
 
     $self->{type} = $type;
-    $self->{decl} = $decl;
+    $self->{name} = $name;
 
     return $self;
 }
@@ -363,7 +363,25 @@ sub appendExpr {
     push @{$self->{expressions}}, $expr;
 }
 
-package Stupid::MemberCall;
+package Stupid::FunctionCall;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $function = shift;
+    my $args = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{function} = $function;
+    $self->{args} = $args;
+
+    return $self;
+}
+
+package Stupid::MemberRef;
 
 use strict;
 
@@ -371,14 +389,12 @@ sub new {
     my $class = shift;
     my $owner = shift;
     my $member = shift;
-    my $args = shift;
 
     my $self = {};
     bless $self, $class;
 
     $self->{owner} = $owner;
     $self->{member} = $member;
-    $self->{args} = $args;
 
     return $self;
 }
