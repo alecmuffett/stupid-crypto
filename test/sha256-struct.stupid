@@ -1,4 +1,4 @@
-"EXPECT:";
+"EXPECT:********************************";
 
 struct sha256 (
   array(uint32, 8) h
@@ -194,4 +194,24 @@ digest = hash = h0 append h1 append h2 append h3 append h4 append h5 append h6 a
     i = i plus32 1;
   }
 
+}
+
+function(ostream out) test() {
+    array(uint8, 64) m1 = ( 0x61, 0x62, 0x63 );
+    array(uint8, 32) h1 = (
+	0xba,0x78,0x16,0xbf,0x8f,0x01,0xcf,0xea,
+	0x41,0x41,0x40,0xde,0x5d,0xae,0x22,0x23,
+	0xb0,0x03,0x61,0xa3,0x96,0x17,0x7a,0x9c,
+	0xb4,0x10,0xff,0x61,0xf2,0x00,0x15,0xad	);
+    array(uint8, 32) r = ( 0 );
+    r = sha256(m1, 24);
+    uint32 i = 0;
+    while(i ne32 32) {
+        if(h1[i] ne8 r[i]) {
+	    out.put('!');
+	} else {
+	    out.put('*');
+	}
+    i = i plus32 1;
+    }
 }

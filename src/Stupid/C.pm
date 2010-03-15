@@ -44,6 +44,15 @@ sub Stupid::Function::emitCode {
     print "}\n";
 }
 
+sub Stupid::Function::maybeAddSelf {
+}
+
+sub Stupid::Function::emitCall {
+    my $self = shift;
+
+    print $self->{name};
+}
+
 sub Stupid::ArgList::emitReturnDecls {
     my $self = shift;
 
@@ -104,9 +113,21 @@ sub Stupid::Statement::emitCode {
 sub Stupid::FunctionCall::emitCode {
     my $self = shift;
 
-    $self->{function}->emitCode();
+    $self->{function}->emitCall();
     print '(';
     $self->{function}->maybeAddSelf();
+    $self->{args}->emitCode();
+    print ");\n";
+}
+
+sub Stupid::FunctionCall::emitCallWithLValue {
+    my $self = shift;
+    my $lvalue = shift;
+
+    $self->{function}->emitCall();
+    print '(';
+    $lvalue->emitPointer();
+    print ', ';
     $self->{args}->emitCode();
     print ");\n";
 }
@@ -116,6 +137,12 @@ sub Stupid::MemberRef::emitCode {
 
     $self->{owner}->emitCode();
     $self->{owner}->emitMemberRef($self->{member});
+}
+
+sub Stupid::MemberRef::emitCall {
+    my $self = shift;
+
+    $self->emitCode();
 }
 
 sub Stupid::MemberRef::maybeAddSelf {
@@ -179,6 +206,14 @@ sub Stupid::Comment::emitDeclarations {
 sub Stupid::Set::emitCode {
     my $self = shift;
 
+    # special case ... clearly we could do this in full generality,
+    # e.g f()[8] or f().foo or (a, b) = (c, d) or (a, b) = (b, a)
+    # [hmmm]
+    if(ref($self->{right}) eq 'Stupid::FunctionCall') {
+	$self->{right}->emitCallWithLValue($self->{left});
+	return;
+    }
+
     $self->{left}->emitLValue();
     print ' = ';
     $self->{right}->emitCode();
@@ -223,6 +258,13 @@ sub Stupid::Variable::emitLValue {
     my $self = shift;
 
     $self->{type}->dereference() if $self->{isReturn};
+    print $self->{name};
+}
+
+sub Stupid::Variable::emitPointer {
+    my $self = shift;
+
+    $self->{type}->emitPointer() if !$self->{isReturn};
     print $self->{name};
 }
 
@@ -365,6 +407,10 @@ sub Stupid::Type::Array::emitDeclaration {
 
     print $self->{type}->typeName(), ' ', $name,
       '[', $self->{size}->value(), ']';
+}
+
+sub Stupid::Type::Array::emitPointer {
+    # because of C bizarroness this is not printing '&'
 }
 
 sub Stupid::ArrayRef::emitLValue {
@@ -552,6 +598,16 @@ sub Stupid::Mod32::emitCode {
 }
 
 sub Stupid::Ne32::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' != ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+sub Stupid::Ne8::emitCode {
     my $self = shift;
 
     print '(';
