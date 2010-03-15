@@ -41,7 +41,7 @@ abstract_decl :	type vardecl
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
-	      new Stupid::Function($_[5], $_[3], $_[7], $_[10]); }
+	      new Stupid::Function($::Context, $_[5], $_[3], $_[7], $_[10]); }
 	;
 
 arglist :	arglist ',' arg
@@ -113,6 +113,8 @@ expr	:	expr 'and32' expr
 	    { new Stupid::Mod32($_[1], $_[3]); }
 	|	expr 'ne32' expr
 	    { new Stupid::Ne32($_[1], $_[3]); }
+	|	expr 'ne8' expr
+	    { new Stupid::Ne8($_[1], $_[3]); }
 	|	expr 'or8' expr
 	    { new Stupid::Or8($_[1], $_[3]); }
 	|	expr 'plus8' expr
@@ -138,10 +140,11 @@ expr	:	expr 'and32' expr
 	|	var
 	    { $_[1]; }
 	|	VALUE
+	|	CHAR
 	;
 
 exprlist:	exprlist ',' expr
-	    { $_[1]->appendExpr($_[3]); }
+	    { $_[1]->appendExpr($_[3]); $_[1]; }
 	|	expr
 	    { my $t = new Stupid::ExprList(); $t->appendExpr($_[1]); $t; }
 	;
@@ -156,7 +159,7 @@ var	:	WORD
 	;
 
 call:	|	expr '(' exprlist ')'
-	    { new Stupid::FunctionCall($_[1], $_[3], $_[5]); }
+	    { new Stupid::FunctionCall($_[1], $_[3]); }
 	;
 
 decl	:	type vardecl '=' VALUE
@@ -192,6 +195,7 @@ val_list :	val_list ',' value
 
 value   :       arrayval
 	|	VALUE
+	|	CHAR
 	;
 
 vardecl	:	WORD

@@ -49,7 +49,7 @@ sub initLexer {
     @keywords = qw(array uint8 uint32 ostream
  function struct if else while
  and8 and32 band bor eq32 ge8 le8 lshift32 lshift8 mask32to8 minus8 minus32
- mod8 mod32 ne32 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
+ mod8 mod32 ne32 ne8 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
  xor32);
 }
 
@@ -90,6 +90,10 @@ sub lexer {
     } elsif($code =~ /^([0-9]+)(.*)$/s) {
 	$type = 'VALUE';
 	$value = new Stupid::DecimalValue($1);
+	$code = $2;
+    } elsif($code =~ /^'(.)'(.*)$/s) {
+	$type = 'CHAR';
+	$value = new Stupid::DecimalValue(ord($1));
 	$code = $2;
     # WORD
     } elsif($code =~ /^([A-Za-z][A-Za-z0-9_]*)(.*)$/s) {
@@ -227,6 +231,7 @@ use strict;
 
 sub new {
     my $class = shift;
+    my $context = shift;
     my $name = shift;
     my $returns = shift;
     my $args = shift;
@@ -240,7 +245,15 @@ sub new {
     $self->{args} = $args;
     $self->{body} = $body;
 
+    $context->addSymbol($self);
+
     return $self;
+}
+
+sub name {
+    my $self = shift;
+
+    return $self->{name};
 }
 
 package Stupid::TopLevelList;
@@ -903,7 +916,23 @@ package Stupid::Ne32;
 
 use strict;
 
-# Unsigned decimal value, any length
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+package Stupid::Ne8;
+
+use strict;
 
 sub new {
     my $class = shift;
