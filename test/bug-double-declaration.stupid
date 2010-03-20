@@ -1,6 +1,6 @@
 "EXPECT-BUILD-FAIL:";
 
-function() test(ostream out) {
+function(ostream out) test() {
   out.put(65);
 }
 
