@@ -162,15 +162,9 @@ call:	|	expr '(' exprlist ')'
 	    { new Stupid::FunctionCall($_[1], $_[3]); }
 	;
 
-decl	:	type vardecl '=' VALUE
+decl	:	type vardecl '=' value
 	    { new Stupid::Declare($::Context,
 				  new Stupid::Variable($_[1], $_[2]), $_[4]); }
-	|	'array' '(' type ',' VALUE ')' vardecl '=' arrayval
-	    { new Stupid::Declare($::Context,
-		  new Stupid::Variable(new Stupid::Type::Array($_[3], $_[5]),
-				       $_[7]), $_[9]); }
-	|	'struct' WORD vardecl '=' arrayval
-	    { new Stupid::Declare($::Context, new Stupid::Variable(new Stupid::Type::StructInstance($_[2]), $_[3]), $_[5]); }
 	;
 
 type	:	'uint32'
@@ -179,6 +173,10 @@ type	:	'uint32'
 	    { new Stupid::Type::UInt8(); }
 	|	'ostream'
 	    { new Stupid::Type::OStream(); }
+	|	'array' '(' type ',' VALUE ')'
+	    { new Stupid::Type::Array($_[3], $_[5]); }
+	|	'struct' WORD
+	    { new Stupid::Type::StructInstance($_[2]); }
 	;
 
 arrayval :	'(' val_list ')'

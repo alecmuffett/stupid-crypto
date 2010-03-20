@@ -289,6 +289,19 @@ sub Stupid::Type::StructInstance::emitDeclaration {
     print "struct $self->{name} $name";
 }
 
+sub Stupid::Type::StructInstance::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    print "struct $self->{name} *$name";
+}
+
+sub Stupid::Type::StructInstance::dereference {
+    my $self = shift;
+
+    print '*';
+}
+
 sub Stupid::AbstractDeclList::emitCode {
     my $self = shift;
 
