@@ -127,7 +127,7 @@ sub Stupid::FunctionCall::emitCallWithLValue {
     $self->{function}->emitCall();
     print '(';
     $lvalue->emitPointer();
-    print ', ';
+    print ', ' if !$self->{args}->isEmpty();
     $self->{args}->emitCode();
     print ");\n";
 }
@@ -300,6 +300,12 @@ sub Stupid::Type::StructInstance::dereference {
     my $self = shift;
 
     print '*';
+}
+
+sub Stupid::Type::StructInstance::emitPointer {
+    my $self = shift;
+
+    print '&';
 }
 
 sub Stupid::AbstractDeclList::emitCode {

@@ -33,9 +33,6 @@ abstract_decl_list : abstract_decl_list ',' abstract_decl
 
 abstract_decl :	type vardecl
 	    { new Stupid::AbstractDeclare($_[1], $_[2]); }
-	|	'array' '(' type ',' VALUE ')' vardecl
-	    { new Stupid::AbstractDeclare(
-			  new Stupid::Type::Array($_[3], $_[5]), $_[7]); }
 	;
 
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
@@ -57,10 +54,6 @@ arglist :	arglist ',' arg
 arg	:	type vardecl
 	    { new Stupid::Declare($::Context, new Stupid::Variable($_[1],
 								   $_[2])); }
-	|	'array' '(' type ',' VALUE ')' vardecl
-	    { new Stupid::Declare($::Context,
-		  new Stupid::Variable(new Stupid::Type::Array($_[3], $_[5]),
-				       $_[7])); }
 	;
 
 statements :	statements statement
@@ -139,14 +132,15 @@ expr	:	expr 'and32' expr
 	    { $_[2]; }
 	|	var
 	    { $_[1]; }
-	|	VALUE
-	|	CHAR
+	|	value
 	;
 
 exprlist:	exprlist ',' expr
 	    { $_[1]->appendExpr($_[3]); $_[1]; }
 	|	expr
 	    { my $t = new Stupid::ExprList(); $t->appendExpr($_[1]); $t; }
+	|
+	    { new Stupid::ExprList(); }
 	;
 
 var	:	WORD
@@ -162,7 +156,7 @@ call:	|	expr '(' exprlist ')'
 	    { new Stupid::FunctionCall($_[1], $_[3]); }
 	;
 
-decl	:	type vardecl '=' value
+decl	:	type vardecl '=' expr
 	    { new Stupid::Declare($::Context,
 				  new Stupid::Variable($_[1], $_[2]), $_[4]); }
 	;
@@ -179,19 +173,19 @@ type	:	'uint32'
 	    { new Stupid::Type::StructInstance($_[2]); }
 	;
 
-arrayval :	'(' val_list ')'
+arrayval :	'[' val_list ']'
 	    { $_[2]; }
 	;
 
-val_list :	val_list ',' value
+val_list :	val_list ',' expr
 	    { $_[1]->append($_[3]); $_[1]; }
-	|	value
+	|	expr
 	    { my $t = new Stupid::ArrayValue(); $t->append($_[1]); $t; }
 	|	STRING
 	    { Stupid::ArrayFromString($_[1]); }
 	;
 
-value   :       arrayval
+value	:       arrayval
 	|	VALUE
 	|	CHAR
 	;

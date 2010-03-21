@@ -10,8 +10,8 @@ struct test2 (
 );
 
 function() test() {
-  struct test c = (0, 0);
-  struct test2 e = ((0,0));
+  struct test c = [0, 0];
+  struct test2 e = [[0, 0]];
 
   c.a = 1;
   c.b = 23;
