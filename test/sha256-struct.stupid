@@ -1,14 +1,17 @@
-"EXPECT:****************************************************************";
+"EXPECT:************************************************************************************************";
 
 struct sha256 (
   array(uint32, 8) h,
   array(uint8, 64) buffer,
-  uint8 used
+  uint8 used,
+  uint32 total
 );
 
 function(struct sha256 state) sha256_init() {
   struct sha256 tmp = [[0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-  	 	      	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]];
+  	 	      	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+		       [0],
+		       0, 0];
   state = tmp;
 }
 
@@ -123,7 +126,8 @@ out.h[7] = in.h[7] plus32 h;
 
 function (array(uint8, 32) output) sha256_final(struct sha256 state_in,
 	 	       	   	   		array(uint8, 64) message_in,
-	 	       	   	   	        uint32 message_bits ) {
+	 	       	   	   	        uint32 message_bits,
+						uint32 total_bits ) {
 "This code adapted from Wikipedia pseudocode";
 
 "Note 2: All constants in this pseudo code are in big endian";
@@ -190,8 +194,8 @@ message[pad_byte plus32 1] = 0;
 message[pad_byte plus32 2] = 0;
 message[pad_byte plus32 3] = 0;
 
-message[pad_byte plus32 7] = mask32to8 message_bits;
-tmp = message_bits rshift32 8;
+message[pad_byte plus32 7] = mask32to8 total_bits;
+tmp = total_bits rshift32 8;
 message[pad_byte plus32 6] = mask32to8 tmp;
 tmp = tmp rshift32 8;
 message[pad_byte plus32 5] = mask32to8 tmp;
@@ -232,6 +236,7 @@ function(struct sha256 out) sha256_update(struct sha256 in,
     while((out.used ne32 64) band (pos ne32 bytes)) {
       out.buffer[out.used] = message[pos];
       out.used = out.used plus32 1;
+      out.total = out.total plus32 1;
       pos = pos plus32 1;
     }
     if(out.used eq32 64) {
@@ -243,18 +248,14 @@ function(struct sha256 out) sha256_update(struct sha256 in,
 }    
 
 function(array(uint8, 32) digest) sha256_finish(struct sha256 state) {
-  digest = sha256_final(state, state.buffer, state.used lshift32 3);
+  digest = sha256_final(state, state.buffer, state.used lshift32 3,
+  	   		state.total lshift32 3);
 }
 
-function(ostream out) test_one(array(uint8, 64) message, uint32 bytes,
-		      	       array(uint8, 32) hash) {
+function(ostream out) compare_hash(struct sha256 state, array(uint8, 32) hash) {
     array(uint8, 32) r = [ 0 ];
     uint32 i = 0;
-    struct sha256 state = [[ 0 ]];
 
-    state = sha256_init();
-    "FIXME: inputs should not be allowed to be outputs";
-    state = sha256_update(state, message, bytes);
     r = sha256_finish(state);
 
     while(i ne32 32) {
@@ -265,6 +266,29 @@ function(ostream out) test_one(array(uint8, 64) message, uint32 bytes,
 	}
     i = i plus32 1;
     }
+}
+
+function(ostream out) test_one(array(uint8, 64) message, uint32 bytes,
+		      	       array(uint8, 32) hash) {
+    struct sha256 state = [[ 0 ]];
+
+    state = sha256_init();
+    "FIXME: inputs should not be allowed to be outputs";
+    state = sha256_update(state, message, bytes);
+    out = compare_hash(state, hash);
+}
+
+function(ostream out) test_two(array(uint8, 1) part, uint32 part_bytes,
+		               uint32 repeats, array(uint8, 32) hash) {
+    struct sha256 state = [[ 0 ]];
+    uint32 i = 0;
+
+    state = sha256_init();
+    while(i ne32 repeats) {
+    	state = sha256_update(state, part, part_bytes);
+	i = i plus32 1;
+    }
+    out = compare_hash(state, hash);
 }
 
 function(ostream out) test() {
@@ -282,8 +306,16 @@ function(ostream out) test() {
 	0xe5,0xc0,0x26,0x93,0x0c,0x3e,0x60,0x39,
 	0xa3,0x3c,0xe4,0x59,0x64,0xff,0x21,0x67,
 	0xf6,0xec,0xed,0xd4,0x19,0xdb,0x06,0xc1	];
+    array(uint8, 1) m3 = [ "a" ];
+    array(uint8, 32) h3 = [
+	0xcd,0xc7,0x6e,0x5c,0x99,0x14,0xfb,0x92,
+	0x81,0xa1,0xc7,0xe2,0x84,0xd7,0x3e,0x67,
+	0xf1,0x80,0x9a,0x48,0xa4,0x97,0x20,0x0e,
+	0x04,0x6d,0x39,0xcc,0xc7,0x11,0x2c,0xd0	];
 
     out = test_one(m1, 3, h1);
     "just big enough to force it into the second block";
     out = test_one(m2, 56, h2);
+    "really big";
+    out = test_two(m3, 1, 1000000, h3);
 }
