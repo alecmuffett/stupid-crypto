@@ -1,7 +1,7 @@
 "EXPECT:Hello, world!";
 
 function(ostream out) test() {
-  array(uint8, 13) hello = ( "Hello, world!" );
+  array(uint8, 13) hello = [ "Hello, world!" ];
   uint32 n = 0;
 
   while(n ne32 13) {

@@ -376,6 +376,12 @@ sub appendExpr {
     push @{$self->{expressions}}, $expr;
 }
 
+sub isEmpty {
+    my $self = shift;
+
+    return $#{$self->{expressions}} == -1;
+}
+
 package Stupid::FunctionCall;
 
 use strict;

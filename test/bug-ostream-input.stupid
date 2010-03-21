@@ -1,7 +1,7 @@
 "EXPECT-BUILD-FAIL:";
 
 function() test(ostream out) {
-  array(uint8, 13) hello = ( "Hello, world!" );
+  array(uint8, 13) hello = [ "Hello, world!" ];
   uint32 n = 0;
 
   while(n ne32 13) {
