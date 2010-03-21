@@ -9,11 +9,12 @@ struct test2 (
     array(uint32, 2) a
 );
 
-function() test() {
+function(struct test t) test() {
   struct test c = [0, 0];
   struct test2 e = [[0, 0]];
 
   c.a = 1;
   c.b = 23;
   e.a[0] = 456;
+  t.a = t.a plus32 1;
 }

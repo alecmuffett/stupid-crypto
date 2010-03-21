@@ -20,7 +20,7 @@ toplevel : comment ';'
 	;
 
 struct_decl :	'struct' WORD '(' abstract_decl_list ')' ';'
-	    { new Stupid::Type::Struct($_[2], $_[4]); }
+	    { new Stupid::Type::Struct($::Context, $_[2], $_[4]); }
 	;
 
 abstract_decl_list : abstract_decl_list ',' abstract_decl
@@ -38,6 +38,7 @@ abstract_decl :	type vardecl
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
+	      $_[7]->markAsArgument();
 	      new Stupid::Function($::Context, $_[5], $_[3], $_[7], $_[10]); }
 	;
 
@@ -172,7 +173,7 @@ type	:	'uint32'
 	|	'array' '(' type ',' VALUE ')'
 	    { new Stupid::Type::Array($_[3], $_[5]); }
 	|	'struct' WORD
-	    { new Stupid::Type::StructInstance($_[2]); }
+	    { new Stupid::Type::StructInstance($::Context, $_[2]); }
 	;
 
 arrayval :	'[' val_list ']'

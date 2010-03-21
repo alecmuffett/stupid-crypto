@@ -121,7 +121,8 @@ out.h[6] = in.h[6] plus32 g;
 out.h[7] = in.h[7] plus32 h;
 }
 
-function (array(uint8, 32) output) sha256_final(array(uint8, 64) message_in,
+function (array(uint8, 32) output) sha256_final(struct sha256 state_in,
+	 	       	   	   		array(uint8, 64) message_in,
 	 	       	   	   	        uint32 message_bits ) {
 "This code adapted from Wikipedia pseudocode";
 
@@ -129,13 +130,13 @@ function (array(uint8, 32) output) sha256_final(array(uint8, 64) message_in,
 
 "Initialize variables";
 "(first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):";
-  struct sha256 state = [[ 0 ]];
 
 uint32 pad_byte = 0;
 uint32 pad_bit = 0;
 uint32 tmp = 0;
 uint32 i = 0;
 array(uint8, 128) message = [ 0 ];
+struct sha256 state = state_in;
 
 "copy the input message to a mutable array";
 i = 0;
@@ -143,8 +144,6 @@ while(i ne32 ((message_bits plus32 7) rshift32 3)) {
   message[i] = message_in[i];
   i = i plus32 1;
 }
-
-state = sha256_init();
 
 "Pre-processing:";
 "append the bit '1' to the message";
@@ -221,12 +220,43 @@ digest = hash = h0 append h1 append h2 append h3 append h4 append h5 append h6 a
 
 }
 
-function(ostream out) test_one(array(uint8, 64) message, uint32 bits,
+"Note that to avoid complication and inefficiency, we assume a whole number of
+bytes, even though the implementation could actually deal with partial bytes";
+function(struct sha256 out) sha256_update(struct sha256 in,
+		                          array(uint8, 64) message,
+					  uint32 bytes) {
+  uint32 pos = 0;
+
+  out = in;
+  while(pos ne32 bytes) {
+    while((out.used ne32 64) band (pos ne32 bytes)) {
+      out.buffer[out.used] = message[pos];
+      out.used = out.used plus32 1;
+      pos = pos plus32 1;
+    }
+    if(out.used eq32 64) {
+      out = sha256_block(out, out.buffer, 0);
+      out.used = 0;
+    } else {
+    }
+  }
+}    
+
+function(array(uint8, 32) digest) sha256_finish(struct sha256 state) {
+  digest = sha256_final(state, state.buffer, state.used lshift32 3);
+}
+
+function(ostream out) test_one(array(uint8, 64) message, uint32 bytes,
 		      	       array(uint8, 32) hash) {
     array(uint8, 32) r = [ 0 ];
     uint32 i = 0;
+    struct sha256 state = [[ 0 ]];
 
-    r = sha256_final(message, bits);
+    state = sha256_init();
+    "FIXME: inputs should not be allowed to be outputs";
+    state = sha256_update(state, message, bytes);
+    r = sha256_finish(state);
+
     while(i ne32 32) {
         if(hash[i] ne8 r[i]) {
 	    out.put('!');
@@ -253,7 +283,7 @@ function(ostream out) test() {
 	0xa3,0x3c,0xe4,0x59,0x64,0xff,0x21,0x67,
 	0xf6,0xec,0xed,0xd4,0x19,0xdb,0x06,0xc1	];
 
-    out = test_one(m1, 24, h1);
+    out = test_one(m1, 3, h1);
     "just big enough to force it into the second block";
-    out = test_one(m2, 448, h2);
+    out = test_one(m2, 56, h2);
 }
