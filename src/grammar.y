@@ -62,6 +62,8 @@ statements :	statements statement
 	    { my $t1 = new Stupid::StatementList();
 	      $t1->appendStatement($_[1]);
 	      $t1; }
+	|
+	    { new Stupid::StatementList(); }
 	;
 
 statement :	decl ';'
