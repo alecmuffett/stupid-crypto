@@ -289,6 +289,14 @@ sub Stupid::Type::StructInstance::emitDeclaration {
     print "struct $self->{name} $name";
 }
 
+sub Stupid::Type::StructInstance::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    print 'const ';
+    $self->emitDeclaration($name);
+}
+
 sub Stupid::Type::StructInstance::emitReturnDecl {
     my $self = shift;
     my $name = shift;

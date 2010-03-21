@@ -12,19 +12,8 @@ function(struct sha256 state) sha256_init() {
   state = tmp;
 }
 
-function (array(uint8, 32) output) sha256(array(uint8, 64) message,
-	 	       	   	   	  uint32 message_bits ) {
-"This code adapted from Wikipedia pseudocode";
-
-"message must include enough space for padding to happen";
-
-"Note 2: All constants in this pseudo code are in big endian";
-
-"Initialize variables";
-"(first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):";
-  struct sha256 state = [[ 0 ]];
-
-
+function(struct sha256 out) sha256_block(struct sha256 in,
+		       	    		 array(uint8, 64) block) {
 "Initialize table of round constants";
 "(first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311):";
 array(uint32, 64) k =
@@ -45,8 +34,6 @@ array(uint32, 64) k =
      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
      0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
 
-uint32 pad_byte = 0;
-uint32 pad_bit = 0;
 uint32 tmp = 0;
 uint32 tmp2 = 0;
 array(uint32, 64) w =
@@ -69,6 +56,95 @@ uint32 maj = 0;
 uint32 t1 = 0;
 uint32 t2 = 0;
 uint32 ch = 0;
+
+"    break chunk into sixteen 32-bit big-endian words w[0..15]";
+tmp = 0;
+while(tmp ne32 16) {
+    tmp2 = tmp lshift32 2;
+    w[tmp] = ((widen8to32 block[tmp2]) lshift32 24)
+      plus32 ((widen8to32 block[tmp2 plus32 1]) lshift32 16)
+      plus32 ((widen8to32 block[tmp2 plus32 2]) lshift32 8)
+      plus32 (widen8to32 block[tmp2 plus32 3]);
+    tmp = tmp plus32 1;
+}
+
+"    Extend the sixteen 32-bit words into sixty-four 32-bit words";
+i = 16;
+while(i ne32 64) {
+    s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
+    s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
+    w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
+    i = i plus32 1;
+}
+
+"    Initialize hash value for this chunk:";
+
+a = in.h[0];
+b = in.h[1];
+c = in.h[2];
+d = in.h[3];
+e = in.h[4];
+f = in.h[5];
+g = in.h[6];
+h = in.h[7];
+
+"    Main loop:";
+
+i = 0;
+while(i ne32 64) {
+   s0 = (a rrotate32 2) xor32 (a rrotate32 13) xor32 (a rrotate32 22);
+   maj = (a and32 b) xor32 (a and32 c) xor32 (b and32 c);
+   t2 = s0 plus32 maj;
+   s1 = (e rrotate32 6) xor32 (e rrotate32 11) xor32 (e rrotate32 25);
+   ch = (e and32 f) xor32 ((not32 e) and32 g);
+   t1 = h plus32 s1 plus32 ch plus32 k[i] plus32 w[i];
+   h = g;
+   g = f;
+   f = e;
+   e = d plus32 t1;
+   d = c;
+   c = b;
+   b = a;
+   a = t1 plus32 t2;
+   i = i plus32 1;
+}
+
+"    Add this chunk's hash to result so far:";
+
+out.h[0] = in.h[0] plus32 a;
+out.h[1] = in.h[1] plus32 b;
+out.h[2] = in.h[2] plus32 c;
+out.h[3] = in.h[3] plus32 d;
+out.h[4] = in.h[4] plus32 e;
+out.h[5] = in.h[5] plus32 f;
+out.h[6] = in.h[6] plus32 g;
+out.h[7] = in.h[7] plus32 h;
+}
+
+function (array(uint8, 32) output) sha256(array(uint8, 64) message_in,
+	 	       	   	   	  uint32 message_bits ) {
+"This code adapted from Wikipedia pseudocode";
+
+"message must include enough space for padding to happen";
+
+"Note 2: All constants in this pseudo code are in big endian";
+
+"Initialize variables";
+"(first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):";
+  struct sha256 state = [[ 0 ]];
+
+uint32 pad_byte = 0;
+uint32 pad_bit = 0;
+uint32 tmp = 0;
+uint32 i = 0;
+array(uint8, 64) message = [ 0 ];
+
+"copy the input message to a mutable array";
+i = 0;
+while(i ne32 ((message_bits plus32 7) rshift32 3)) {
+  message[i] = message_in[i];
+  i = i plus32 1;
+}
 
 state = sha256_init();
 
@@ -127,68 +203,7 @@ message[pad_byte plus32 4] = mask32to8 tmp;
 
 "for each chunk (we only have one, so don't bother with the loop for now)";
 
-"    break chunk into sixteen 32-bit big-endian words w[0..15]";
-tmp = 0;
-while(tmp ne32 16) {
-    tmp2 = tmp lshift32 2;
-    w[tmp] = ((widen8to32 message[tmp2]) lshift32 24)
-      plus32 ((widen8to32 message[tmp2 plus32 1]) lshift32 16)
-      plus32 ((widen8to32 message[tmp2 plus32 2]) lshift32 8)
-      plus32 (widen8to32 message[tmp2 plus32 3]);
-    tmp = tmp plus32 1;
-}
-
-"    Extend the sixteen 32-bit words into sixty-four 32-bit words";
-i = 16;
-while(i ne32 64) {
-    s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
-    s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
-    w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
-    i = i plus32 1;
-}
-
-"    Initialize hash value for this chunk:";
-
-a = state.h[0];
-b = state.h[1];
-c = state.h[2];
-d = state.h[3];
-e = state.h[4];
-f = state.h[5];
-g = state.h[6];
-h = state.h[7];
-
-"    Main loop:";
-
-i = 0;
-while(i ne32 64) {
-   s0 = (a rrotate32 2) xor32 (a rrotate32 13) xor32 (a rrotate32 22);
-   maj = (a and32 b) xor32 (a and32 c) xor32 (b and32 c);
-   t2 = s0 plus32 maj;
-   s1 = (e rrotate32 6) xor32 (e rrotate32 11) xor32 (e rrotate32 25);
-   ch = (e and32 f) xor32 ((not32 e) and32 g);
-   t1 = h plus32 s1 plus32 ch plus32 k[i] plus32 w[i];
-   h = g;
-   g = f;
-   f = e;
-   e = d plus32 t1;
-   d = c;
-   c = b;
-   b = a;
-   a = t1 plus32 t2;
-   i = i plus32 1;
-}
-
-"    Add this chunk's hash to result so far:";
-
-state.h[0] = state.h[0] plus32 a;
-state.h[1] = state.h[1] plus32 b;
-state.h[2] = state.h[2] plus32 c;
-state.h[3] = state.h[3] plus32 d;
-state.h[4] = state.h[4] plus32 e;
-state.h[5] = state.h[5] plus32 f;
-state.h[6] = state.h[6] plus32 g;
-state.h[7] = state.h[7] plus32 h;
+state = sha256_block(state, message);
 
 "end of outer loop (when we do it)";
 
