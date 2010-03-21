@@ -125,8 +125,6 @@ function (array(uint8, 32) output) sha256_final(array(uint8, 64) message_in,
 	 	       	   	   	        uint32 message_bits ) {
 "This code adapted from Wikipedia pseudocode";
 
-"message must include enough space for padding to happen";
-
 "Note 2: All constants in this pseudo code are in big endian";
 
 "Initialize variables";
