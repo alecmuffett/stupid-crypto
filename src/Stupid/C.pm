@@ -341,6 +341,7 @@ sub Stupid::Type::UInt32::emitArg {
     my $self = shift;
     my $name = shift;
 
+    print 'const ';
     $self->emitDeclaration($name);
 }
 
@@ -367,6 +368,7 @@ sub Stupid::Type::UInt8::emitArg {
     my $self = shift;
     my $name = shift;
 
+    print 'const ';
     $self->emitDeclaration($name);
 }
 
@@ -417,6 +419,7 @@ sub Stupid::Type::Array::emitArg {
     my $self = shift;
     my $name = shift;
 
+    print 'const ';
     $self->emitDeclaration($name);
 }
 
