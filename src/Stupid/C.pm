@@ -99,6 +99,7 @@ sub Stupid::StatementList::emitCode {
     my $self = shift;
 
     for my $s (@{$self->{statements}}) {
+#	use Data::Dumper; $Data::Dumper::Indent=1; print "/*\n", Data::Dumper->Dump([$s]), " */\n";
 	$s->emitCode();
     }
 }
@@ -116,7 +117,7 @@ sub Stupid::FunctionCall::emitCode {
     $self->{function}->emitCall();
     print '(';
     $self->{function}->maybeAddSelf();
-    $self->{args}->emitCode();
+    $self->{args}->emitParameters();
     print ");\n";
 }
 
@@ -128,7 +129,7 @@ sub Stupid::FunctionCall::emitCallWithLValue {
     print '(';
     $lvalue->emitPointer();
     print ', ' if !$self->{args}->isEmpty();
-    $self->{args}->emitCode();
+    $self->{args}->emitParameters();
     print ");\n";
 }
 
@@ -155,7 +156,16 @@ sub Stupid::MemberRef::emitLValue {
     my $self = shift;
 
     $self->{owner}->emitCode();
-    print ".$self->{member}";
+    $self->{owner}->emitMemberRef($self->{member});
+}
+
+sub Stupid::MemberRef::emitParameter {
+    my $self = shift;
+
+    $self->{member}->{type}->emitParameter();
+    print '(';
+    $self->emitLValue();
+    print ')';
 }
 
 sub Stupid::ExprList::emitCode {
@@ -166,6 +176,17 @@ sub Stupid::ExprList::emitCode {
 	print ', ' if !$first;
 	$first = 0;
 	$expr->emitCode();
+    }
+}
+
+sub Stupid::ExprList::emitParameters {
+    my $self = shift;
+
+    my $first = 1;
+    for my $expr (@{$self->{expressions}}) {
+	print ', ' if !$first;
+	$first = 0;
+	$expr->emitParameter();
     }
 }
 
@@ -243,15 +264,27 @@ sub Stupid::Variable::emitDeclaration {
 sub Stupid::Variable::emitCode {
     my $self = shift;
 
+    print '(';
+    $self->{type}->dereference() if $self->{isReturn};
+    $self->{type}->derefArgument() if $self->{isArgument};
+    print $self->{name};
+    print ')';
+}
+
+sub Stupid::Variable::emitParameter {
+    my $self = shift;
+
+    $self->{type}->emitParameter()
+      if !$self->{isReturn} && !$self->{isArgument};;
     print $self->{name};
 }
 
 sub Stupid::Variable::emitMemberRef {
     my $self = shift;
-    my $name = shift;
+    my $member = shift;
 
-    print $self->{isReturn} ? '->' : '.';
-    print $name;
+    print '.';
+    print $member->{name};
 }
 
 sub Stupid::Variable::emitLValue {
@@ -286,22 +319,21 @@ sub Stupid::Type::StructInstance::emitDeclaration {
     my $self = shift;
     my $name = shift;
 
-    print "struct $self->{name} $name";
+    print "struct $self->{struct}->{name} $name";
 }
 
 sub Stupid::Type::StructInstance::emitArg {
     my $self = shift;
     my $name = shift;
 
-    print 'const ';
-    $self->emitDeclaration($name);
+    print "const struct $self->{struct}->{name} * const $name";
 }
 
 sub Stupid::Type::StructInstance::emitReturnDecl {
     my $self = shift;
     my $name = shift;
 
-    print "struct $self->{name} *$name";
+    print "struct $self->{struct}->{name} *$name";
 }
 
 sub Stupid::Type::StructInstance::dereference {
@@ -310,7 +342,19 @@ sub Stupid::Type::StructInstance::dereference {
     print '*';
 }
 
+sub Stupid::Type::StructInstance::derefArgument {
+    my $self = shift;
+
+    print '*';
+}
+
 sub Stupid::Type::StructInstance::emitPointer {
+    my $self = shift;
+
+    print '&';
+}
+
+sub Stupid::Type::StructInstance::emitParameter {
     my $self = shift;
 
     print '&';
@@ -336,6 +380,10 @@ sub Stupid::Type::UInt32::dereference {
     my $self = shift;
 
     print '*';
+}
+
+sub Stupid::Type::UInt32::derefArgument {
+# ints are passed by value
 }
 
 sub Stupid::Type::UInt32::emitReturnDecl {
@@ -406,7 +454,7 @@ sub Stupid::Type::OStream::emitReturnDecl {
     my $name = shift;
 
     print "stupid_ostream *$name";
-}    
+}
 
 sub Stupid::Type::OStream::emitArg {
     croak "ostreams must be outputs";
@@ -414,6 +462,10 @@ sub Stupid::Type::OStream::emitArg {
 
 sub Stupid::Type::OStream::needsSelf {
     return 1;
+}
+
+sub Stupid::Type::OStream::dereference {
+    print '*';
 }
 
 sub Stupid::Type::Array::emitReturnDecl {
@@ -443,6 +495,18 @@ sub Stupid::Type::Array::emitPointer {
     # because of C bizarroness this is not printing '&'
 }
 
+sub Stupid::Type::Array::emitParameter {
+    # because of C bizarroness this is not printing '&'
+}
+
+sub Stupid::Type::Array::dereference {
+    # once more, no need for a *
+}
+
+sub Stupid::Type::Array::derefArgument {
+    # once more, no need for a *
+}
+
 sub Stupid::ArrayRef::emitLValue {
     my $self = shift;
 
@@ -450,6 +514,12 @@ sub Stupid::ArrayRef::emitLValue {
     print '[';
     $self->{offset}->emitCode();
     print ']';
+}
+
+sub Stupid::ArrayRef::emitParameter {
+    my $self = shift;
+
+    $self->emitLValue();
 }
 
 sub Stupid::ArrayRef::emitCode {
@@ -468,6 +538,12 @@ sub Stupid::DecimalValue::emitCode {
     my $self = shift;
 
     print $self->{value}, 'U';
+}
+
+sub Stupid::DecimalValue::emitParameter {
+    my $self = shift;
+
+    $self->emitCode();
 }
 
 sub Stupid::ArrayValue::emitCode {
@@ -533,7 +609,6 @@ sub Stupid::Eq32::emitCode {
     print ')';
 }
 
-
 sub Stupid::Ge8::emitCode {
     my $self = shift;
 
@@ -543,7 +618,6 @@ sub Stupid::Ge8::emitCode {
     $self->{right}->emitCode();
     print ')';
 }
-
 
 sub Stupid::Le8::emitCode {
     my $self = shift;
@@ -555,8 +629,6 @@ sub Stupid::Le8::emitCode {
     print ')';
 }
 
-
-
 sub Stupid::LShift32::emitCode {
     my $self = shift;
 
@@ -565,6 +637,13 @@ sub Stupid::LShift32::emitCode {
     print ' << ';
     $self->{right}->emitCode();
     print ')';
+}
+
+# FIXME: we really want this in some common ancestor
+sub Stupid::LShift32::emitParameter {
+    my $self = shift;
+
+    $self->emitCode();
 }
 
 sub Stupid::LShift8::emitCode {

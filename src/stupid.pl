@@ -30,7 +30,7 @@ my $ptree = $parser->YYParse(yylex => \&lexer,
 			     yyerror => \&yyerror,
 			     yydebug => $debug ? 6 : 0);
 
-use Data::Dumper; Data::Dumper->Indent(1); print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
+use Data::Dumper; $Data::Dumper::Indent=1; print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
 
 #$ptree->value();
 #$::Context->dumpSymbols();
@@ -198,6 +198,22 @@ sub findSymbol {
     return $symbol
 }
 
+sub addStruct {
+    my $self = shift;
+    my $struct = shift;
+
+    $self->{structs}->{$struct->{name}} = $struct;
+}
+
+sub findStruct {
+    my $self = shift;
+    my $name = shift;
+
+    my $struct = $self->{structs}->{$name};
+    croak "Can't find struct $name" if !$struct;
+    return $struct;
+}
+
 sub dumpSymbols {
     my $self = shift;
 
@@ -286,6 +302,7 @@ use strict;
 
 sub new {
     my $class = shift;
+    my $context = shift;
     my $name = shift;
     my $decls = shift;
 
@@ -295,7 +312,16 @@ sub new {
     $self->{name} = $name;
     $self->{decls} = $decls;
 
+    $context->addStruct($self);
+
     return $self;
+}
+
+sub findMember {
+    my $self = shift;
+    my $name = shift;
+
+    return $self->{decls}->findDeclaration($name);
 }
 
 package Stupid::Type::StructInstance;
@@ -304,14 +330,22 @@ use strict;
 
 sub new {
     my $class = shift;
+    my $context = shift;
     my $name = shift;
 
     my $self = {};
     bless $self, $class;
 
-    $self->{name} = $name;
+    $self->{struct} = $context->findStruct($name);
 
     return $self;
+}
+
+sub findMember {
+    my $self = shift;
+    my $name = shift;
+
+    return $self->{struct}->findMember($name);
 }
 
 package Stupid::AbstractDeclare;
@@ -336,6 +370,8 @@ package Stupid::AbstractDeclList;
 
 use strict;
 
+use Carp;
+
 sub new {
     my $class = shift;
 
@@ -352,6 +388,16 @@ sub appendAbstractDecl {
     my $decl = shift;
 
     push @{$self->{decls}}, $decl;
+}
+
+sub findDeclaration {
+    my $self = shift;
+    my $name = shift;
+
+    foreach my $decl (@{$self->{decls}}) {
+	return $decl if $decl->{name} eq $name;
+    }
+    croak "Can't find declaration of $name";
 }
 
 package Stupid::ExprList;
@@ -413,7 +459,7 @@ sub new {
     bless $self, $class;
 
     $self->{owner} = $owner;
-    $self->{member} = $member;
+    $self->{member} = $self->{owner}->findMember($member);
 
     return $self;
 }
@@ -468,6 +514,14 @@ sub markAsReturn {
 
     for my $a (@{$self->{args}}) {
 	$a->markAsReturn();
+    }
+}
+
+sub markAsArgument {
+    my $self = shift;
+
+    for my $a (@{$self->{args}}) {
+	$a->markAsArgument();
     }
 }
 
@@ -1203,13 +1257,26 @@ sub markAsReturn {
     $self->{var}->markAsReturn();
 }
 
+sub markAsArgument {
+    my $self = shift;
+
+    $self->{var}->markAsArgument();
+}
+
 sub value {
     my $self = shift;
 
     $self->{var}->setValue($self->{init}->value());
 }
 
-package Stupid::Type::OStream;
+sub findMember {
+    my $self = shift;
+    my $member = shift;
+
+    return $self->{var}->findMember($member);
+}
+
+package Stupid::Type::OStream::Put;
 
 use strict;
 
@@ -1219,7 +1286,34 @@ sub new {
     my $self = {};
     bless $self, $class;
 
+    $self->{name} = 'put';
+
     return $self;
+}
+
+package Stupid::Type::OStream;
+
+use strict;
+
+use Carp;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{put} = new Stupid::Type::OStream::Put();
+
+    return $self;
+}
+
+sub findMember {
+    my $self = shift;
+    my $name = shift;
+
+    croak "ostreams do not have the member $name" if $name ne 'put';
+    return $self->{put};
 }
 
 package Stupid::Type::UInt32;
@@ -1356,6 +1450,19 @@ sub markAsReturn {
     my $self = shift;
 
     $self->{isReturn} = 1;
+}
+
+sub markAsArgument {
+    my $self = shift;
+
+    $self->{isArgument} = 1;
+}
+
+sub findMember {
+    my $self = shift;
+    my $member = shift;
+
+    return $self->{type}->findMember($member);
 }
 
 package Stupid::HexValue;
