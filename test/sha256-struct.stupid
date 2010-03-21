@@ -13,7 +13,7 @@ function(struct sha256 state) sha256_init() {
 }
 
 function(struct sha256 out) sha256_block(struct sha256 in,
-		       	    		 array(uint8, 64) block) {
+		       	    		 array(uint8, 128) block, uint32 base) {
 "Initialize table of round constants";
 "(first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311):";
 array(uint32, 64) k =
@@ -61,10 +61,10 @@ uint32 ch = 0;
 tmp = 0;
 while(tmp ne32 16) {
     tmp2 = tmp lshift32 2;
-    w[tmp] = ((widen8to32 block[tmp2]) lshift32 24)
-      plus32 ((widen8to32 block[tmp2 plus32 1]) lshift32 16)
-      plus32 ((widen8to32 block[tmp2 plus32 2]) lshift32 8)
-      plus32 (widen8to32 block[tmp2 plus32 3]);
+    w[tmp] = ((widen8to32 block[base plus32 tmp2]) lshift32 24)
+      plus32 ((widen8to32 block[base plus32 tmp2 plus32 1]) lshift32 16)
+      plus32 ((widen8to32 block[base plus32 tmp2 plus32 2]) lshift32 8)
+      plus32 (widen8to32 block[base plus32 tmp2 plus32 3]);
     tmp = tmp plus32 1;
 }
 
@@ -121,8 +121,8 @@ out.h[6] = in.h[6] plus32 g;
 out.h[7] = in.h[7] plus32 h;
 }
 
-function (array(uint8, 32) output) sha256(array(uint8, 64) message_in,
-	 	       	   	   	  uint32 message_bits ) {
+function (array(uint8, 32) output) sha256_final(array(uint8, 64) message_in,
+	 	       	   	   	        uint32 message_bits ) {
 "This code adapted from Wikipedia pseudocode";
 
 "message must include enough space for padding to happen";
@@ -137,7 +137,7 @@ uint32 pad_byte = 0;
 uint32 pad_bit = 0;
 uint32 tmp = 0;
 uint32 i = 0;
-array(uint8, 64) message = [ 0 ];
+array(uint8, 128) message = [ 0 ];
 
 "copy the input message to a mutable array";
 i = 0;
@@ -201,11 +201,13 @@ message[pad_byte plus32 5] = mask32to8 tmp;
 tmp = tmp rshift32 8;
 message[pad_byte plus32 4] = mask32to8 tmp;
 
-"for each chunk (we only have one, so don't bother with the loop for now)";
+state = sha256_block(state, message, 0);
+"if the message went over two blocks";
+if(pad_byte ne32 56) {
+  state = sha256_block(state, message, 64);
+} else {
+}
 
-state = sha256_block(state, message);
-
-"end of outer loop (when we do it)";
 
 "Produce the final hash value (big-endian):
 digest = hash = h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7";
@@ -229,7 +231,7 @@ function(ostream out) test() {
 	0xb0,0x03,0x61,0xa3,0x96,0x17,0x7a,0x9c,
 	0xb4,0x10,0xff,0x61,0xf2,0x00,0x15,0xad	];
     array(uint8, 32) r = [ 0 ];
-    r = sha256(m1, 24);
+    r = sha256_final(m1, 24);
     uint32 i = 0;
     while(i ne32 32) {
         if(h1[i] ne8 r[i]) {
