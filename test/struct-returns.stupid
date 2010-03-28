@@ -1,0 +1,17 @@
+"EXPECT:";
+
+struct test (
+    uint32 a,
+    uint32 b
+);
+
+function (struct test t) inner() {
+  t.a = 5;
+}
+
+function () test() {
+  struct test c = inner();
+  c.a = 1;
+  c.b = 23;
+}
+

@@ -1,0 +1,321 @@
+"EXPECT:************************************************************************************************";
+
+struct sha256 (
+  array(uint32, 8) h,
+  array(uint8, 64) buffer,
+  uint8 used,
+  uint32 total
+);
+
+function(struct sha256 state) sha256_init() {
+  struct sha256 tmp = [[0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+  	 	      	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+		       [0],
+		       0, 0];
+  state = tmp;
+}
+
+function(struct sha256 out) sha256_block(struct sha256 in,
+		       	    		 array(uint8, 128) block, uint32 base) {
+"Initialize table of round constants";
+"(first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311):";
+array(uint32, 64) k =
+    [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+     0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+     0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+     0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+     0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+     0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+     0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+     0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+     0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+     0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+     0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+     0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+
+uint32 tmp = 0;
+uint32 tmp2 = 0;
+array(uint32, 64) w =
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+uint32 i = 0;
+uint32 s0 = 0;
+uint32 s1 = 0;
+uint32 a = 0;
+uint32 b = 0;
+uint32 c = 0;
+uint32 d = 0;
+uint32 e = 0;
+uint32 f = 0;
+uint32 g = 0;
+uint32 h = 0;
+uint32 maj = 0;
+uint32 t1 = 0;
+uint32 t2 = 0;
+uint32 ch = 0;
+
+"    break chunk into sixteen 32-bit big-endian words w[0..15]";
+tmp = 0;
+while(tmp ne32 16) {
+    tmp2 = tmp lshift32 2;
+    w[tmp] = ((widen8to32 block[base plus32 tmp2]) lshift32 24)
+      plus32 ((widen8to32 block[base plus32 tmp2 plus32 1]) lshift32 16)
+      plus32 ((widen8to32 block[base plus32 tmp2 plus32 2]) lshift32 8)
+      plus32 (widen8to32 block[base plus32 tmp2 plus32 3]);
+    tmp = tmp plus32 1;
+}
+
+"    Extend the sixteen 32-bit words into sixty-four 32-bit words";
+i = 16;
+while(i ne32 64) {
+    s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
+    s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
+    w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
+    i = i plus32 1;
+}
+
+"    Initialize hash value for this chunk:";
+
+a = in.h[0];
+b = in.h[1];
+c = in.h[2];
+d = in.h[3];
+e = in.h[4];
+f = in.h[5];
+g = in.h[6];
+h = in.h[7];
+
+"    Main loop:";
+
+i = 0;
+while(i ne32 64) {
+   s0 = (a rrotate32 2) xor32 (a rrotate32 13) xor32 (a rrotate32 22);
+   maj = (a and32 b) xor32 (a and32 c) xor32 (b and32 c);
+   t2 = s0 plus32 maj;
+   s1 = (e rrotate32 6) xor32 (e rrotate32 11) xor32 (e rrotate32 25);
+   ch = (e and32 f) xor32 ((not32 e) and32 g);
+   t1 = h plus32 s1 plus32 ch plus32 k[i] plus32 w[i];
+   h = g;
+   g = f;
+   f = e;
+   e = d plus32 t1;
+   d = c;
+   c = b;
+   b = a;
+   a = t1 plus32 t2;
+   i = i plus32 1;
+}
+
+"    Add this chunk's hash to result so far:";
+
+out.h[0] = in.h[0] plus32 a;
+out.h[1] = in.h[1] plus32 b;
+out.h[2] = in.h[2] plus32 c;
+out.h[3] = in.h[3] plus32 d;
+out.h[4] = in.h[4] plus32 e;
+out.h[5] = in.h[5] plus32 f;
+out.h[6] = in.h[6] plus32 g;
+out.h[7] = in.h[7] plus32 h;
+}
+
+function (array(uint8, 32) output) sha256_final(struct sha256 state_in,
+	 	       	   	   		array(uint8, 64) message_in,
+	 	       	   	   	        uint32 message_bits,
+						uint32 total_bits ) {
+"This code adapted from Wikipedia pseudocode";
+
+"Note 2: All constants in this pseudo code are in big endian";
+
+"Initialize variables";
+"(first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):";
+
+uint32 pad_byte = 0;
+uint32 pad_bit = 0;
+uint32 tmp = 0;
+uint32 i = 0;
+array(uint8, 128) message = [ 0 ];
+struct sha256 state = state_in;
+
+"copy the input message to a mutable array";
+i = 0;
+while(i ne32 ((message_bits plus32 7) rshift32 3)) {
+  message[i] = message_in[i];
+  i = i plus32 1;
+}
+
+"Pre-processing:";
+"append the bit '1' to the message";
+
+"note that we're using a 32-bit length for now";
+"all the op32, op8 etc are _without_ wrap (where applicable) - i.e. wrap is an error";
+"they also require left and right to both be the correct type and size";
+"also, we have no precedence, it is up to you to bracket things";
+"rshift is with zero padding";
+
+pad_bit = 7 minus32 (message_bits mod32 8);
+pad_byte = (message_bits plus32 1) rshift32 3;
+message[pad_byte] = message[pad_byte] or8 (1 lshift8 pad_bit);
+
+"append k bits '0', where k is the minimum number >= 0 such that the
+resulting message length (in bits) is congruent to 448 (mod 512)";
+
+"eq32 and friends return a boolean value (which is not even a bit)";
+
+if (pad_bit eq32 0) {
+   pad_bit = 7;
+   pad_byte = pad_byte plus32 1;
+} else {
+   pad_bit = pad_bit minus32 1;
+}
+
+"bor is like C || (i.e. RHS is only executed if LHS is false)";
+
+"448/8 = 56";
+while (((pad_byte mod32 64) ne32 56) bor (pad_bit ne32 7)) {
+      message[pad_byte] = message[pad_byte] and8 (not8 (1 lshift8 pad_bit));
+      if (pad_bit eq32 0) {
+         pad_bit = 7;
+	 pad_byte = pad_byte plus32 1;
+      } else {
+         pad_bit = pad_bit minus32 1;
+      }
+}
+
+"append length of message (before pre-processing), in bits, as 64-bit big-endian integer";
+
+message[pad_byte] = 0;
+message[pad_byte plus32 1] = 0;
+message[pad_byte plus32 2] = 0;
+message[pad_byte plus32 3] = 0;
+
+message[pad_byte plus32 7] = mask32to8 total_bits;
+tmp = total_bits rshift32 8;
+message[pad_byte plus32 6] = mask32to8 tmp;
+tmp = tmp rshift32 8;
+message[pad_byte plus32 5] = mask32to8 tmp;
+tmp = tmp rshift32 8;
+message[pad_byte plus32 4] = mask32to8 tmp;
+
+state = sha256_block(state, message, 0);
+"if the message went over two blocks";
+if(pad_byte ne32 56) {
+  state = sha256_block(state, message, 64);
+} else {
+}
+
+
+"Produce the final hash value (big-endian):
+digest = hash = h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7";
+
+  i = 0;
+  while(i ne32 8) {
+    output[i lshift32 2] = mask32to8 (state.h[i] rshift32 24);
+    output[(i lshift32 2) plus32 1] = mask32to8 (state.h[i] rshift32 16);
+    output[(i lshift32 2) plus32 2] = mask32to8 (state.h[i] rshift32 8);
+    output[(i lshift32 2) plus32 3] = mask32to8 state.h[i];
+    i = i plus32 1;
+  }
+
+}
+
+"Note that to avoid complication and inefficiency, we assume a whole number of
+bytes, even though the implementation could actually deal with partial bytes";
+function(struct sha256 out) sha256_update(struct sha256 in,
+		                          array(uint8, 64) message,
+					  uint32 bytes) {
+  uint32 pos = 0;
+
+  out = in;
+  while(pos ne32 bytes) {
+    while((out.used ne32 64) band (pos ne32 bytes)) {
+      out.buffer[out.used] = message[pos];
+      out.used = out.used plus32 1;
+      out.total = out.total plus32 1;
+      pos = pos plus32 1;
+    }
+    if(out.used eq32 64) {
+      out = sha256_block(out, out.buffer, 0);
+      out.used = 0;
+    } else {
+    }
+  }
+}    
+
+function(array(uint8, 32) digest) sha256_finish(struct sha256 state) {
+  digest = sha256_final(state, state.buffer, state.used lshift32 3,
+  	   		state.total lshift32 3);
+}
+
+function(ostream out) compare_hash(struct sha256 state, array(uint8, 32) hash) {
+    array(uint8, 32) r = [ 0 ];
+    uint32 i = 0;
+
+    r = sha256_finish(state);
+
+    while(i ne32 32) {
+        if(hash[i] ne8 r[i]) {
+	    out.put('!');
+	} else {
+	    out.put('*');
+	}
+    i = i plus32 1;
+    }
+}
+
+function(ostream out) test_one(array(uint8, 64) message, uint32 bytes,
+		      	       array(uint8, 32) hash) {
+    struct sha256 state = [[ 0 ]];
+
+    state = sha256_init();
+    "FIXME: inputs should not be allowed to be outputs";
+    state = sha256_update(state, message, bytes);
+    out = compare_hash(state, hash);
+}
+
+function(ostream out) test_two(array(uint8, 1) part, uint32 part_bytes,
+		               uint32 repeats, array(uint8, 32) hash) {
+    struct sha256 state = [[ 0 ]];
+    uint32 i = 0;
+
+    state = sha256_init();
+    while(i ne32 repeats) {
+    	state = sha256_update(state, part, part_bytes);
+	i = i plus32 1;
+    }
+    out = compare_hash(state, hash);
+}
+
+function(ostream out) test() {
+    "test vectors taken from OpenSSL tests/sha256t.c";
+    array(uint8, 64) m1 = [ 0x61, 0x62, 0x63 ];
+    array(uint8, 32) h1 = [
+	0xba,0x78,0x16,0xbf,0x8f,0x01,0xcf,0xea,
+	0x41,0x41,0x40,0xde,0x5d,0xae,0x22,0x23,
+	0xb0,0x03,0x61,0xa3,0x96,0x17,0x7a,0x9c,
+	0xb4,0x10,0xff,0x61,0xf2,0x00,0x15,0xad	];
+    array(uint8, 64) m2
+      = [ "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" ];
+    array(uint8, 32) h2 = [
+	0x24,0x8d,0x6a,0x61,0xd2,0x06,0x38,0xb8,
+	0xe5,0xc0,0x26,0x93,0x0c,0x3e,0x60,0x39,
+	0xa3,0x3c,0xe4,0x59,0x64,0xff,0x21,0x67,
+	0xf6,0xec,0xed,0xd4,0x19,0xdb,0x06,0xc1	];
+    array(uint8, 1) m3 = [ "a" ];
+    array(uint8, 32) h3 = [
+	0xcd,0xc7,0x6e,0x5c,0x99,0x14,0xfb,0x92,
+	0x81,0xa1,0xc7,0xe2,0x84,0xd7,0x3e,0x67,
+	0xf1,0x80,0x9a,0x48,0xa4,0x97,0x20,0x0e,
+	0x04,0x6d,0x39,0xcc,0xc7,0x11,0x2c,0xd0	];
+
+    out = test_one(m1, 3, h1);
+    "just big enough to force it into the second block";
+    out = test_one(m2, 56, h2);
+    "really big";
+    out = test_two(m3, 1, 1000000, h3);
+}

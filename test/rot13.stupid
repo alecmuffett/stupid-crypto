@@ -1,0 +1,21 @@
+
+function (uint8 output) rot13 (uint8 input) {
+   if( ( (input ge8 97) band (input le8 122)))
+   { 
+      output = input minus8 97;
+      output = output plus8 13;
+      output = output mod8 26;
+      output = output plus8 97;
+   } else {
+      if( ( (input ge8 65) band (input le8 90)))
+      { 
+         output = input minus8 97;
+         output = output plus8 13;
+         output = output mod8 26;
+         output = output plus8 97;
+      } else {
+         output = input;
+      }
+   }
+}
+
