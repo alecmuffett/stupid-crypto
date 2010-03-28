@@ -22,10 +22,10 @@ sub Stupid::LanguageWrapper::emitCode {
 }
 
 ## FUNCTODO
-sub Stupid::FunctionList::emitCode {
+sub Stupid::TopLevelList::emitCode {
     my $self = shift;
 
-    for my $f (@{$self->{functions}}) {
+    for my $f (@{$self->{topLevels}}) {
         $f->emitCode();
     }
 }
@@ -95,6 +95,45 @@ sub Stupid::Variable::emitHaskellType {
 
     $self->{type}->emitHaskellType();
 }
+
+sub Stupid::Type::Struct::emitCode {
+    my $self = shift;
+
+    print "data Struct$self->{name} = MkStruct$self->{name} { \n";
+    $self->{decls}->emitCode(); # TODO this decls probably do not look quite like variable declarations
+    print "}\n";
+}
+
+sub Stupid::Type::StructInstance::emitHaskellType {
+    my $self = shift;
+    my $name = shift;
+
+    print " $self->{name} ";
+}
+
+
+sub Stupid::AbstractDeclList::emitCode {
+    my $self = shift;
+
+    my $first = 1;
+    foreach my $decl (@{$self->{decls}}) {
+        if($first) {
+            print " {- nocomma Stupid::AbstractDeclList::emitCode -}\n";
+            $first=0;
+        } else {
+            print ", {- Stupid::AbstractDeclList::emitCode -}\n";
+        }
+        $decl->emitCode();
+    }
+}
+
+sub Stupid::AbstractDeclare::emitCode {
+    my $self = shift;
+
+    print '  ';
+    $self->{type}->emitDeclaration($self->{name});
+}
+
 
 # FUNCTODO
 sub Stupid::ArgList::emitReturnDecls {
@@ -388,6 +427,14 @@ sub Stupid::Type::UInt32::emitHaskellType {
 
     print "Uint32";
 }
+
+sub Stupid::Type::UInt32::emitDeclaration {
+    my $self = shift;
+    my $name = shift;
+
+    print "$name :: Uint32";
+}
+
 
 # TODO is this the stupid typename or the target language type name?
 sub Stupid::Type::UInt32::typeName {
