@@ -30,6 +30,16 @@ sub Stupid::TopLevelList::emitCode {
     }
 }
 
+sub Stupid::FunctionCall::emitCode {
+    my $self = shift;
+
+    $self->{function}->emitCall();
+    print '(';
+    # $self->{function}->maybeAddSelf(); # do we ever need this? perhaps not... where is it used? for object-style invocations only, I think, and in those, the self is passed through a different syntax
+    $self->{args}->emitParameters();
+    print ");\n";
+}
+
 ## FUNCTODO
 sub Stupid::Function::emitCode {
     my $self = shift;
@@ -94,6 +104,38 @@ sub Stupid::Variable::emitHaskellType {
     my $self = shift;
 
     $self->{type}->emitHaskellType();
+}
+
+# may need to make member references less ambigious if Haskell
+# doesn't like structures with the same name
+#
+# at the moment (supporting ostreams but not structs) this is being
+# used to get an output function, not a user-defined structure entry.
+#
+# however eventually it will be. so should that syntax be carried over
+# into the haskell code or should this translater do something fancy?
+#
+sub Stupid::MemberRef::emitCode {
+    my $self = shift;
+
+    print '(';
+    print 'get';
+    print $self->{member}->{name};
+    print ' (';
+    $self->{owner}->emitCode();
+    print '))';
+}
+
+sub Stupid::MemberRef::emitCall {
+    my $self = shift;
+
+    $self->emitCode();
+}
+
+sub Stupid::MemberRef::maybeAddSelf {
+    my $self = shift;
+
+    $self->{owner}->maybeAddSelf();
 }
 
 sub Stupid::Type::Struct::emitCode {
@@ -167,11 +209,28 @@ sub Stupid::Declare::emitArg {
     $self->{var}->emitArg();
 }
 
+sub Stupid::Variable::maybeAddSelf {
+    my $self = shift;
+
+    print "$self->{name}, " if $self->{type}->needsSelf();
+}
+
+#sub Stupid::Variable::emitMemberRef {
+#    my $self = shift;
+#    my $member = shift;
+#    print ' XXX {- Variable::emitMemberRef -}';
+#    print $member->{name};
+#}
+
 # FUNCTODO
 sub Stupid::Variable::emitArg {
     my $self = shift;
     print $self->{name};
     # $self->{type}->emitArg($self->{name});
+}
+
+sub Stupid::Type::OStream::needsSelf {
+    return 1;
 }
 
 sub Stupid::Type::OStream::emitArg {
@@ -271,7 +330,7 @@ sub Stupid::StatementList::emitCode {
     my $self = shift;
     print "do { ";
     for my $s (@{$self->{statements}}) {
-	$s->emitCode();
+        $s->emitCode();
     }
     print " ; return () }";
 # TODO for now we always return nothing at all - the only example I've seen
@@ -289,14 +348,32 @@ sub Stupid::Statement::emitCode {
 # if this is only used for parameters to functions, maybe needs
 # $< as separator?
 
+# its not - its used in structs, and in function parameters too...
+# in the haskell backend, those will have different separators -
+# funciton parameters are space-separated, but struct definitions
+# (haskell records) use a , between fields
+
 sub Stupid::ExprList::emitCode {
     my $self = shift;
-
+print '{- ExprList emitCode -}';
     my $first = 1;
     for my $expr (@{$self->{expressions}}) {
         print " (";
         $expr->emitCode();
         print ") ";
+    }
+}
+
+sub Stupid::ExprList::emitParameters {
+    my $self = shift;
+
+print '{- ExprList emitParameters -}';
+
+ #   my $first = 1;
+    for my $expr (@{$self->{expressions}}) {
+  #      print ', ' if !$first;
+   #     $first = 0;
+        $expr->emitParameter();
     }
 }
 
@@ -483,6 +560,13 @@ sub Stupid::ArrayRef::emitLValue {
     print ')) ';
 }
 
+sub Stupid::ArrayRef::emitParameter {
+    my $self = shift;
+
+    $self->emitLValue();
+}
+
+
 sub Stupid::ArrayRef::emitCode {
     my $self = shift;
     print '( readIORef $< (';
@@ -505,6 +589,13 @@ sub Stupid::DecimalValue::emitCode {
     print ')';
 # shouldn't need a U on the end of this, but maybe can put in type spec to force type to be unsigned (either here or higher up)
 }
+
+sub Stupid::DecimalValue::emitParameter {
+    my $self = shift;
+
+    $self->emitCode();
+}
+
 
 sub Stupid::ArrayValue::emitCode {
     my $self = shift;
