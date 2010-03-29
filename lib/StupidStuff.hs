@@ -228,11 +228,13 @@ module StupidStuff where
       stupidwhile condition body
      else
       return ()
-    
+
   writeToOutputStream :: IO Handle -> IO Uint8 -> IO ()
   writeToOutputStream hr vr = do
     h <- hr
     v <- vr
     hPutChar h (chr $ fromIntegral v)
     return ()
+
+  getput = writeToOutputStream
 
