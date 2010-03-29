@@ -34,10 +34,11 @@ sub Stupid::FunctionCall::emitCode {
     my $self = shift;
 
     $self->{function}->emitCall();
-    print '(';
+    print ' ';
     # $self->{function}->maybeAddSelf(); # do we ever need this? perhaps not... where is it used? for object-style invocations only, I think, and in those, the self is passed through a different syntax
     $self->{args}->emitParameters();
-    print ");\n";
+    # whats happening for return parameters here?
+    print " ;\n";
 }
 
 ## FUNCTODO
@@ -496,6 +497,12 @@ sub Stupid::Variable::emitLValue {
     print '(return ';
     print $self->{name};
     print ') ';
+}
+
+# is this for the left or the right? what we output varies in Haskell...
+sub Stupid::Variable::emitParameter {
+   my $self = shift;
+   $self->emitCode();
 }
 
 sub Stupid::Type::UInt32::emitHaskellType {
