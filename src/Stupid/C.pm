@@ -257,6 +257,16 @@ sub Stupid::Variable::emitDeclaration {
     my $init = shift;
 
     $self->{type}->emitDeclaration($self->{name});
+
+    # special case ... clearly we could do this in full generality,
+    # e.g f()[8] or f().foo or (a, b) = (c, d) or (a, b) = (b, a)
+    # [hmmm]
+    if(ref($init) eq 'Stupid::FunctionCall') {
+	print ";\n";
+	$init->emitCallWithLValue($self);
+	return;
+    }
+
     print ' = ';
     $init->emitCode();
 }
