@@ -445,12 +445,21 @@ sub Stupid::Type::UInt8::emitDeclaration {
     print "uint8 $name";
 }
 
+sub Stupid::Type::UInt8::emitPointer {
+    my $self = shift;
+
+    print '&';
+}
+
+sub Stupid::Type::UInt8::emitParameter {
+    my $self = shift;
+}
+
 sub Stupid::Type::UInt8::dereference {
     my $self = shift;
 
     print '*';
 }
-
 
 sub Stupid::Type::UInt8::emitReturnDecl {
     my $self = shift;
