@@ -50,7 +50,7 @@ sub initLexer {
  function struct if else while
  and8 and32 band bor eq32 ge8 le8 lshift32 lshift8 mask32to8 minus8 minus32
  mod8 mod32 ne32 ne8 not32 not8 or8 plus8 plus32 rrotate32 rshift32 widen8to32
- xor32);
+ wrapplus32 xor32);
 }
 
 sub lexer {
@@ -1139,7 +1139,30 @@ package Stupid::Plus32;
 
 use strict;
 
-# Unsigned decimal value, any length
+sub new {
+    my $class = shift;
+    my $l = shift;
+    my $r = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{left} = $l;
+    $self->{right} = $r;
+
+    return $self;
+}
+
+sub value {
+    my $self = shift;
+
+    # FIXME type and overflow checking
+    $self->{left}->value()->badd($self->{right}->value());
+}
+
+package Stupid::WrapPlus32;
+
+use strict;
 
 sub new {
     my $class = shift;
@@ -1165,8 +1188,6 @@ sub value {
 package Stupid::RRotate32;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;

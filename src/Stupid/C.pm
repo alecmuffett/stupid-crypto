@@ -819,6 +819,16 @@ sub Stupid::Plus32::emitCode {
     print ')';
 }
 
+sub Stupid::WrapPlus32::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' + ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
 sub Stupid::RRotate32::emitCode {
     my $self = shift;
 
