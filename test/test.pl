@@ -46,7 +46,7 @@ for my $test (@tests) {
 	    }
 	}
 	if($expect_status ne $status) {
-	    print "FAIL (expected status $expect_status, got $status)";
+	    print "FAIL (expected status $expect_status, got $status with output $output)";
 	    ++$failed;
 	} elsif($expect_output ne $output) {
 	    print "FAIL (expected '$expect_output', got '$output')";
