@@ -1,0 +1,10 @@
+"EXPECT-RUN-FAIL:1 minus32 2 underflows
+";
+
+function() test() {
+  uint32 a = 1;
+  uint32 b = 2;
+  uint32 c = 0;
+
+  c = a minus32 b;
+}

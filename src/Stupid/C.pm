@@ -48,6 +48,14 @@ uint32 plus32(const uint32 a, const uint32 b) {
     stupid_fatal("%u plus32 %u overflows", a, b);
   return t;
 }
+
+uint32 minus32(const uint32 a, const uint32 b) {
+  uint32 t = a - b;
+  if(t > a)
+    stupid_fatal("%u minus32 %u underflows", a, b);
+  return t;
+}
+
 EOC
 
     $self->{tree}->emitCode();
@@ -725,9 +733,9 @@ sub Stupid::Minus8::emitCode {
 sub Stupid::Minus32::emitCode {
     my $self = shift;
 
-    print '(';
+    print 'minus32(';
     $self->{left}->emitCode();
-    print ' - ';
+    print ', ';
     $self->{right}->emitCode();
     print ')';
 }
