@@ -9,6 +9,9 @@ sub Stupid::LanguageWrapper::emitCode {
 
     print <<EOC;
 #include <sys/types.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef __APPLE__
 typedef u_int32_t uint32;
@@ -22,6 +25,22 @@ typedef struct {
   void (*put)(void *info, uint8 ch);
   void *info;
 } stupid_ostream;
+
+void stupid_fatal(const char * const fmt, ...) {
+  va_list vl;
+
+  va_start(vl, fmt);
+  vfprintf(stderr, fmt, vl);
+  fputc('\\n', stderr);
+  exit(1);
+}
+
+uint8 plus8(const uint8 a, const uint8 b) {
+  uint8 t = a + b;
+  if(t < a)
+    stupid_fatal("%d plus8 %d overflows", a, b);
+  return t;
+}
 EOC
 
     $self->{tree}->emitCode();
@@ -776,9 +795,9 @@ sub Stupid::Or8::emitCode {
 sub Stupid::Plus8::emitCode {
     my $self = shift;
 
-    print '(';
+    print 'plus8(';
     $self->{left}->emitCode();
-    print ' + ';
+    print ', ';
     $self->{right}->emitCode();
     print ')';
 }
