@@ -41,6 +41,13 @@ uint8 plus8(const uint8 a, const uint8 b) {
     stupid_fatal("%d plus8 %d overflows", a, b);
   return t;
 }
+
+uint32 plus32(const uint32 a, const uint32 b) {
+  uint32 t = a + b;
+  if(t < a)
+    stupid_fatal("%u plus32 %u overflows", a, b);
+  return t;
+}
 EOC
 
     $self->{tree}->emitCode();
@@ -805,9 +812,9 @@ sub Stupid::Plus8::emitCode {
 sub Stupid::Plus32::emitCode {
     my $self = shift;
 
-    print '(';
+    print 'plus32(';
     $self->{left}->emitCode();
-    print ' + ';
+    print ', ';
     $self->{right}->emitCode();
     print ')';
 }
