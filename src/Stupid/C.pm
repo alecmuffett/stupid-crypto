@@ -7,20 +7,22 @@ use Carp;
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
-    print "#include <sys/types.h>\n";
+    print <<EOC;
+#include <sys/types.h>
 
-    print "#ifdef __APPLE__\n";
-    print "typedef u_int32_t uint32;\n";
-    print "typedef u_int8_t uint8;\n";
-    print "#else\n";
-    print "typedef uint32_t uint32;\n";
-    print "typedef uint8_t uint8;\n";
-    print "#endif\n";
+#ifdef __APPLE__
+typedef u_int32_t uint32;
+typedef u_int8_t uint8;
+#else
+typedef uint32_t uint32;
+typedef uint8_t uint8;
+#endif
 
-    print "typedef struct {\n";
-    print "  void (*put)(void *info, uint8 ch);\n";
-    print "  void *info;\n";
-    print "} stupid_ostream;\n";
+typedef struct {
+  void (*put)(void *info, uint8 ch);
+  void *info;
+} stupid_ostream;
+EOC
 
     $self->{tree}->emitCode();
 }
