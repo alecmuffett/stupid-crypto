@@ -1,0 +1,10 @@
+"EXPECT-RUN-FAIL:305419896 plus32 4275878552 overflows
+";
+
+function() test() {
+  uint32 a = 0x12345678;
+  uint32 b = 0xfedcba98;
+  uint32 c = 0;
+
+  c = a plus32 b;
+}
