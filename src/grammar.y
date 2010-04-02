@@ -117,6 +117,8 @@ expr	:	expr 'and32' expr
 	    { new Stupid::Plus8($_[1], $_[3]); }
 	|	expr 'plus32' expr
 	    { new Stupid::Plus32($_[1], $_[3]); }
+	|	expr 'wrapplus32' expr
+	    { new Stupid::WrapPlus32($_[1], $_[3]); }
 	|	expr 'rrotate32' expr
 	    { new Stupid::RRotate32($_[1], $_[3]); }
 	|	expr 'rshift32' expr

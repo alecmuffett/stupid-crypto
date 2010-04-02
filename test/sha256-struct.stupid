@@ -76,7 +76,7 @@ i = 16;
 while(i ne32 64) {
     s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
     s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
-    w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
+    w[i] = w[i minus32 16] wrapplus32 s0 wrapplus32 w[i minus32 7] wrapplus32 s1;
     i = i plus32 1;
 }
 
@@ -97,31 +97,31 @@ i = 0;
 while(i ne32 64) {
    s0 = (a rrotate32 2) xor32 (a rrotate32 13) xor32 (a rrotate32 22);
    maj = (a and32 b) xor32 (a and32 c) xor32 (b and32 c);
-   t2 = s0 plus32 maj;
+   t2 = s0 wrapplus32 maj;
    s1 = (e rrotate32 6) xor32 (e rrotate32 11) xor32 (e rrotate32 25);
    ch = (e and32 f) xor32 ((not32 e) and32 g);
-   t1 = h plus32 s1 plus32 ch plus32 k[i] plus32 w[i];
+   t1 = h wrapplus32 s1 wrapplus32 ch wrapplus32 k[i] wrapplus32 w[i];
    h = g;
    g = f;
    f = e;
-   e = d plus32 t1;
+   e = d wrapplus32 t1;
    d = c;
    c = b;
    b = a;
-   a = t1 plus32 t2;
+   a = t1 wrapplus32 t2;
    i = i plus32 1;
 }
 
 "    Add this chunk's hash to result so far:";
 
-out.h[0] = in.h[0] plus32 a;
-out.h[1] = in.h[1] plus32 b;
-out.h[2] = in.h[2] plus32 c;
-out.h[3] = in.h[3] plus32 d;
-out.h[4] = in.h[4] plus32 e;
-out.h[5] = in.h[5] plus32 f;
-out.h[6] = in.h[6] plus32 g;
-out.h[7] = in.h[7] plus32 h;
+out.h[0] = in.h[0] wrapplus32 a;
+out.h[1] = in.h[1] wrapplus32 b;
+out.h[2] = in.h[2] wrapplus32 c;
+out.h[3] = in.h[3] wrapplus32 d;
+out.h[4] = in.h[4] wrapplus32 e;
+out.h[5] = in.h[5] wrapplus32 f;
+out.h[6] = in.h[6] wrapplus32 g;
+out.h[7] = in.h[7] wrapplus32 h;
 }
 
 function (array(uint8, 32) output) sha256_final(struct sha256 state_in,

@@ -145,7 +145,7 @@ i = 16;
 while(i ne32 64) {
     s0 = (w[i minus32 15] rrotate32 7) xor32 (w[i minus32 15] rrotate32 18) xor32 (w[i minus32 15] rshift32 3);
     s1 = (w[i minus32 2] rrotate32 17) xor32 (w[i minus32 2] rrotate32 19) xor32 (w[i minus32 2] rshift32 10);
-    w[i] = w[i minus32 16] plus32 s0 plus32 w[i minus32 7] plus32 s1;
+    w[i] = w[i minus32 16] wrapplus32 s0 wrapplus32 w[i minus32 7] wrapplus32 s1;
     i = i plus32 1;
 }
 
@@ -166,31 +166,31 @@ i = 0;
 while(i ne32 64) {
    s0 = (a rrotate32 2) xor32 (a rrotate32 13) xor32 (a rrotate32 22);
    maj = (a and32 b) xor32 (a and32 c) xor32 (b and32 c);
-   t2 = s0 plus32 maj;
+   t2 = s0 wrapplus32 maj;
    s1 = (e rrotate32 6) xor32 (e rrotate32 11) xor32 (e rrotate32 25);
    ch = (e and32 f) xor32 ((not32 e) and32 g);
-   t1 = h plus32 s1 plus32 ch plus32 k[i] plus32 w[i];
+   t1 = h wrapplus32 s1 wrapplus32 ch wrapplus32 k[i] wrapplus32 w[i];
    h = g;
    g = f;
    f = e;
-   e = d plus32 t1;
+   e = d wrapplus32 t1;
    d = c;
    c = b;
    b = a;
-   a = t1 plus32 t2;
+   a = t1 wrapplus32 t2;
    i = i plus32 1;
 }
 
 "    Add this chunk's hash to result so far:";
 
-h0 = h0 plus32 a;
-h1 = h1 plus32 b;
-h2 = h2 plus32 c;
-h3 = h3 plus32 d;
-h4 = h4 plus32 e;
-h5 = h5 plus32 f;
-h6 = h6 plus32 g;
-h7 = h7 plus32 h;
+h0 = h0 wrapplus32 a;
+h1 = h1 wrapplus32 b;
+h2 = h2 wrapplus32 c;
+h3 = h3 wrapplus32 d;
+h4 = h4 wrapplus32 e;
+h5 = h5 wrapplus32 f;
+h6 = h6 wrapplus32 g;
+h7 = h7 wrapplus32 h;
 
 "end of outer loop (when we do it)";
 
