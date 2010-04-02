@@ -5,6 +5,7 @@ use strict;
 use Getopt::Long;
 use Carp;
 use File::Slurp;
+use IPC::Run qw(run);
 
 $| = 1;
 
@@ -33,10 +34,16 @@ for my $test (@tests) {
 	    $status = '-BUILD-FAIL';
 	    $output = '';
 	} else {
-	    open(my $f, "generated/$language/$base |");
-	    $status = '';
-	    $output = read_file($f);
-	    close $f;
+	    my @cmd;
+	    $cmd[0] = "generated/$language/$base";
+	    my $err;
+	    my $ok = run \@cmd, \undef, \$output, \$err;
+	    if($ok) {
+		$status = '';
+	    } else {
+		$status = '-RUN-FAIL';
+		$output = $err;
+	    }
 	}
 	if($expect_status ne $status) {
 	    print "FAIL (expected status $expect_status, got $status)";
