@@ -1,6 +1,8 @@
-function () test() {
+"EXPECT:C";
 
-array(uint32, 3) k =
-    (0x428a2f98, 0x71374491);
+function (ostream o) test() {
 
+array(uint8, 3) k = [65,66,67];
+
+o.put(k[2]);
 }
