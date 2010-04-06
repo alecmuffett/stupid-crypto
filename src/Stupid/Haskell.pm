@@ -44,6 +44,19 @@ sub Stupid::FunctionCall::emitCode {
     print "\n";
 }
 
+sub Stupid::FunctionCall::emitCallWithLValue() {
+    my $self = shift;
+    my $lvalue = shift;
+    print "$indent";
+    print ' (';
+    $self->{function}->emitCall();
+    print ' $< ';
+    $lvalue->emitLValue();
+    print ') ';
+    $self->{args}->emitParameters();
+    print "\n";
+}
+
 ## FUNCTODO
 sub Stupid::Function::emitCode {
     my $self = shift;
@@ -69,6 +82,12 @@ sub Stupid::Function::emitCode {
     print " = ";
     $self->{body}->emitCode();
     print "\n";
+}
+
+sub Stupid::Function::emitCall {
+    my $self = shift;
+
+    print $self->{name};
 }
 
 sub Stupid::ArgList::emitArgTypes {
@@ -438,17 +457,24 @@ sub Stupid::Comment::emitDeclarations {
 sub Stupid::Set::emitCode {
     my $self = shift;
 
-# should be able to pull the InST out into its own operator using
-# applicative functor syntax, but I don't have my head around that at
-# the moment...
-    print "$indent";
-    print '(writeIORefInIO (';
-    $self->{left}->emitLValue();
-    print ' )) $< ( ';
-    $self->{right}->emitCode();
-    print ")\n";
+# There are two styles of assignment that differ very much in their
+# generated code.
 
+# One is assignment where the righthand is a value (or something that
+# produces a value).
+# The other is when the righthand is a procedure call, and so all of the
+# lvalues must be passed as procedure parameters
 
+    if(ref($self->{right}) eq 'Stupid::FunctionCall') {
+        $self->{right}->emitCallWithLValue($self->{left});
+    } else {
+        print "$indent";
+        print '(writeIORefInIO (';
+        $self->{left}->emitLValue();
+        print ' )) $< ( ';
+        $self->{right}->emitCode();
+        print ")\n";
+    }
 
 #    print "do { writeInternalVar<-";
 #    $self->{right}->emitCode();
