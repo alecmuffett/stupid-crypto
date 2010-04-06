@@ -1,7 +1,7 @@
 "EXPECT-RUN-FAIL:1 minus32 2 underflows
 ";
 
-function() test() {
+function(ostream o) test() {
   uint32 a = 1;
   uint32 b = 2;
   uint32 c = 0;
