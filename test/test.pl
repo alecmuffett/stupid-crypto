@@ -11,8 +11,10 @@ use IPC::Run qw(run);
 $| = 1;
 
 my $language;
+my $quietbuild;
 
-croak if !GetOptions("language=s" => \$language);
+croak if !GetOptions("language=s" => \$language,
+                     "quietbuild" => \$quietbuild);
 
 opendir(D, '.') || croak "Can't open .: $!";
 my @tests = sort grep { /\.stupid$/ } readdir(D);
@@ -32,7 +34,11 @@ for my $test (@tests) {
 	my $expect_output = $2;
 	my $status;
 	my $output;
-	if(system("./build-$language.sh $base")) {
+	my $buildredirect="";
+	if($quietbuild) {
+		$buildredirect=">/dev/null 2>/dev/null";
+	}
+	if(system("./build-$language.sh $base $buildredirect")) {
 	    $status = '-BUILD-FAIL';
 	    $output = '';
 	} else {
