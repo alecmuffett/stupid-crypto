@@ -77,7 +77,7 @@ sub Stupid::ArgList::emitArgTypes {
 
     for my $arg (@{$self->{args}}) {
         print ' -> ' if !$first;
-	print "IORef ";
+        print "IORef ";
         $arg->emitHaskellType();
         $first = 0;
     }
@@ -626,9 +626,9 @@ sub Stupid::ArrayValue::emitCode {
     print '(do { r <- mapM (\a -> do { nxv <- a ; newIORef nxv }) [ ';
     my $first = 1;
     foreach my $v (@{$self->value()}) {
-	print ', ' if !$first;
-	$v->emitCode();
-	$first = 0;
+        print ', ' if !$first;
+        $v->emitCode();
+        $first = 0;
     }
     print ' ]  ; return r } )';
 }
