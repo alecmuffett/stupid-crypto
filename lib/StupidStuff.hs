@@ -21,6 +21,7 @@ module StupidStuff where
   type Uint8 = Word8
   type Uint32 = Word32
 
+
 -- operators. these work in the monad, rather than being operators on
 -- raw values. this allows the translated language to have expressions
 -- that use them directly
