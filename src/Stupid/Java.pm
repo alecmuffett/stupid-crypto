@@ -1,6 +1,7 @@
 package Stupid::Java;
 
 use strict;
+use warnings;
 use File::Basename;
 
 # a note on mapping between java types and stupid types:
