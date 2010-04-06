@@ -387,16 +387,18 @@ print '{- ExprList emitParameters -}';
 sub Stupid::If::emitCode {
     my $self = shift;
 
-    print "do {\n";
-    print "xxxifcond <- ";
+    print "${indent}do\n";
+    my $oldindent = $indent;
+    $indent = "$indent   ";
+    print "${indent}xxxifcond <- ";
     $self->{cond}->emitCode();
-    print "; \n if xxxifcond";
+    print "\n${indent}if xxxifcond";
     print ' then ';
     $self->{then}->emitCode();
     print "  else ";
     $self->{else}->emitCode();
     print "\n";
-    print "};\n"; 
+    $indent = $oldindent;
 }
 
 sub Stupid::While::emitCode {
