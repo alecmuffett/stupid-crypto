@@ -7,6 +7,7 @@ package Stupid::Haskell;
 # Types in haskell must begin with an uppercase, which is reflected here
 
 use strict;
+use warnings;
 
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;

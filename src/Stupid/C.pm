@@ -1,6 +1,7 @@
 package Stupid::C;
 
 use strict;
+use warnings;
 
 use Carp;
 
