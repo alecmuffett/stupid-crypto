@@ -9,6 +9,8 @@ package Stupid::Haskell;
 use strict;
 use warnings;
 
+my $indent = "";
+
 sub Stupid::LanguageWrapper::emitCode {
     my $self = shift;
 
@@ -33,13 +35,13 @@ sub Stupid::TopLevelList::emitCode {
 
 sub Stupid::FunctionCall::emitCode {
     my $self = shift;
-
+    print "$indent";
     $self->{function}->emitCall();
     print ' ';
     # $self->{function}->maybeAddSelf(); # do we ever need this? perhaps not... where is it used? for object-style invocations only, I think, and in those, the self is passed through a different syntax
     $self->{args}->emitParameters();
     # whats happening for return parameters here?
-    print " ;\n";
+    print "\n";
 }
 
 ## FUNCTODO
@@ -330,11 +332,14 @@ sub Stupid::Declare::emitCode {
 
 sub Stupid::StatementList::emitCode {
     my $self = shift;
-    print "do { ";
+    print "do\n";
+    my $oldindent = $indent;
+    $indent = "$indent   ";
     for my $s (@{$self->{statements}}) {
         $s->emitCode();
     }
-    print " ; return () }";
+    print "${indent}return ()";
+    $indent = $oldindent;
 # TODO for now we always return nothing at all - the only example I've seen
 # of stupid code gives any particular return method so I arbitrarily assume
 # none at all
@@ -344,7 +349,7 @@ sub Stupid::Statement::emitCode {
     my $self = shift;
 
     $self->{expr}->emitCode();
-    print ";";
+    # print ";";
 }
 
 # if this is only used for parameters to functions, maybe needs
@@ -401,11 +406,15 @@ sub Stupid::While::emitCode {
 # its condition is a monadic action returning a value, not a pure
 # expression (despite what it superficially looks like) because
 # it depends on the value of variables...
+    print "$indent";
     print 'stupidwhile (';
     $self->{cond}->emitCode();
-    print ") (\n";
+    print ") \$ ";
+    my $oldindent=$indent;
+    $indent="$indent   ";
     $self->{body}->emitCode();
-    print ");\n";
+    $indent=$oldindent;
+    print "\n";
 }
 
 sub Stupid::Comment::emitCode {
@@ -430,6 +439,7 @@ sub Stupid::Set::emitCode {
 # should be able to pull the InST out into its own operator using
 # applicative functor syntax, but I don't have my head around that at
 # the moment...
+    print "$indent";
     print '(writeIORefInIO (';
     $self->{left}->emitLValue();
     print ' )) $< ( ';
@@ -466,6 +476,7 @@ sub Stupid::Variable::emitDeclaration {
     # $self->{type}->emitDeclaration($self->{name});
 
     # now create a STRef for this variable and assign the initial value
+    print "$indent";
     print $self->{name};
     print ' <- (newIORef $< ( (';
     $init->emitCode();
