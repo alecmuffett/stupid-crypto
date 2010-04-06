@@ -1,4 +1,5 @@
 A non-exhaustive list of prerequisites:
 
- Perl File::Slurp (p5-file-slurp)
+ Perl File::Slurp (macports: p5-file-slurp)
+ Perl IPC::Run (macports: p5-ipc-run)
 
