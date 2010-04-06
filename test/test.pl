@@ -21,6 +21,7 @@ closedir(D);
 my $failed = 0;
 my $skipped = 0;
 my $ran = 0;
+my $passed = 0;
 for my $test (@tests) {
     ++$ran;
     my($base) = $test =~ /^(.*)\.stupid$/;
@@ -54,6 +55,7 @@ for my $test (@tests) {
 	    ++$failed;
 	} else {
 	    print 'OK';
+	    ++$passed;
 	}
     } else {
 	print 'skip';
@@ -62,4 +64,4 @@ for my $test (@tests) {
     print "\n";
 }
 
-print "Ran $ran tests, $failed failed, $skipped skipped.\n";
+print "Ran $ran tests, $passed passed, $failed failed, $skipped skipped.\n";
