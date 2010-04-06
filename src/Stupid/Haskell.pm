@@ -48,7 +48,7 @@ sub Stupid::FunctionCall::emitCallWithLValue() {
     my $self = shift;
     my $lvalue = shift;
     print "$indent";
-    print ' (';
+    print '(';
     $self->{function}->emitCall();
     print ' $< ';
     $lvalue->emitLValue();
@@ -503,14 +503,34 @@ sub Stupid::Variable::emitDeclaration {
     # skip the type declaration...
     # $self->{type}->emitDeclaration($self->{name});
 
-    # now create a STRef for this variable and assign the initial value
-    print "$indent";
-    print $self->{name};
-    print ' <- (newIORef $< ( (';
-    $init->emitCode();
-    print ') :: IO  ';
-    $self->{type}->emitHaskellType();
-    print "));\n"
+    # sometimes we'll get an initial value for this
+    # at other times, there will be a function to make the initialisation
+    # in which case we need to invoke the function with the new
+    # variable as an lvalue. This is one place where the function is going
+    # to be able to read the variable even though its not initialised
+    # (which perhaps we can later on use the type system to prevent)
+
+    if(ref($init) eq 'Stupid::FunctionCall') {
+        # first create a variable with a default value
+        # for now, 0 is used as default value, which will not make sense
+        # for anything except a numeric type.
+        print "$indent";
+        print $self->{name};
+        print ' <- (newIORef (0 :: ';
+        $self->{type}->emitHaskellType();
+        print "))\n";
+        # and now initialise it with the supplied function call
+        $init->emitCallWithLValue($self);
+    } else {
+        # create a STRef for this variable and assign the initial value
+        print "$indent";
+        print $self->{name};
+        print ' <- (newIORef $< ( (';
+        $init->emitCode();
+        print ') :: IO  ';
+        $self->{type}->emitHaskellType();
+        print "))\n"
+    }
 # I don't know how to emit types for arrays as they are represented here
 # (because of the free variable in STRefs :(
 
