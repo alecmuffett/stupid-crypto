@@ -584,7 +584,7 @@ sub Stupid::ArrayRef::emitLValue {
 sub Stupid::ArrayRef::emitParameter {
     my $self = shift;
 
-    $self->emitLValue();
+    $self->emitCode();
 }
 
 
