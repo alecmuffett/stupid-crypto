@@ -1,7 +1,9 @@
-#!/usr/bin/env perl
+#!/bin/sh
+eval 'exec perl -x -w $0 ${1+"$@"}'
+
+#!perl actually starts here.
 
 use strict;
-use warnings;
 
 use Getopt::Long;
 use Carp;
