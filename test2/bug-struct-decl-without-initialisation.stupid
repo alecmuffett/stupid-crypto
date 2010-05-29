@@ -1,8 +1,8 @@
 "EXPECT-BUILD-FAIL:";
 
 struct test (
-    uint32 a,
-    uint32 b
+    int_32u a,
+    int_32u b
 );
 
 function(ostream out) test() {
