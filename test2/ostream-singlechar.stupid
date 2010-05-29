@@ -1,0 +1,5 @@
+"EXPECT:C";
+
+function(ostream out) test() {
+   out.put(67);
+}
