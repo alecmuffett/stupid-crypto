@@ -1,0 +1,12 @@
+"EXPECT:BAB";
+
+function (ostream o) test() {
+
+array(uint8, 3) k = [ 66, 66, 66 ];
+
+k[1] = 65;
+
+o.put(k[0]);
+o.put(k[1]);
+o.put(k[2]);
+}
