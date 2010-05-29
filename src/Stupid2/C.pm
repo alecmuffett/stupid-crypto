@@ -33,4 +33,15 @@ sub Stupid2::Type::Int::emitArg {
     $self->emitDeclaration($name);
 }
 
+sub Stupid2::Equals::emitCode {
+    my $self = shift;
+
+    print '(';
+    $self->{left}->emitCode();
+    print ' == ';
+    $self->{right}->emitCode();
+    print ')';
+}
+
+
 1;

@@ -1,7 +1,7 @@
 "EXPECT:B";
 
 function(ostream out) test() {
-   if(1 eq32 2) {
+   if(1 == 2) {
       out.put(67);
    } else {
       out.put(66);

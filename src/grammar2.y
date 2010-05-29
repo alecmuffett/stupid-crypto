@@ -89,8 +89,8 @@ expr	:	expr 'and32' expr
 	    { new Stupid::BAnd($_[1], $_[3]); }
 	|	expr 'bor' expr
 	    { new Stupid::BOr($_[1], $_[3]); }
-	|	expr 'eq32' expr
-	    { new Stupid::Eq32($_[1], $_[3]); }
+	|	expr '==' expr
+	    { new Stupid2::Equals($_[1], $_[3]); }
 	|	expr 'ge8' expr
 	    { new Stupid::Ge8($_[1], $_[3]); }
 	|	expr 'le8' expr
