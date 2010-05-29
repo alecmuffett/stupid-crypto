@@ -9,7 +9,7 @@ prog	: toplevel_list
 toplevel_list : toplevel_list toplevel
 	    { $_[1]->appendTopLevel($_[2]); $_[1]; }
 	| toplevel
-	    { my $t = new Stupid::TopLevelList();
+	    { my $t = new Stupid2::TopLevelList();
 	      $t->appendTopLevel($_[1]);
 	      $t; }
 	;
@@ -39,7 +39,7 @@ function :	'function' '(' arglist ')' WORD '(' arglist ')'
 		  '{' statements '}'
 	    { $_[3]->markAsReturn();
 	      $_[7]->markAsArgument();
-	      new Stupid::Function($::Context, $_[5], $_[3], $_[7], $_[10]); }
+	      new Stupid2::Function($::Context, $_[5], $_[3], $_[7], $_[10]); }
 	;
 
 arglist :	arglist ',' arg
@@ -53,18 +53,18 @@ arglist :	arglist ',' arg
 	;
 
 arg	:	type vardecl
-	    { new Stupid::Declare($::Context, new Stupid::Variable($_[1],
-								   $_[2])); }
+	    { new Stupid2::Declare($::Context, new Stupid2::Variable($_[1],
+								     $_[2])); }
 	;
 
 statements :	statements statement
 	    { $_[1]->appendStatement($_[2]); $_[1]; }
 	|	statement
-	    { my $t1 = new Stupid::StatementList();
+	    { my $t1 = new Stupid2::StatementList();
 	      $t1->appendStatement($_[1]);
 	      $t1; }
 	|
-	    { new Stupid::StatementList(); }
+	    { new Stupid2::StatementList(); }
 	;
 
 statement :	decl ';'
@@ -72,11 +72,11 @@ statement :	decl ';'
 	|	comment ';'
 	    { $_[1]; }
 	|	var '=' expr ';'
-	    { new Stupid::Statement(new Stupid::Set($_[1], $_[3])); }
+	    { new Stupid2::Statement(new Stupid2::Set($_[1], $_[3])); }
 	| 	'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
 	    { new Stupid::If($_[3], $_[6], $_[10]); }
 	| 	'while' '(' expr ')' '{' statements '}'
-	    { new Stupid::While($_[3], $_[6]); }
+	    { new Stupid2::While($_[3], $_[6]); }
 	|	call ';'
 	    { $_[1]; }
 	;
@@ -90,7 +90,7 @@ expr	:	expr 'and32' expr
 	|	expr 'bor' expr
 	    { new Stupid::BOr($_[1], $_[3]); }
 	|	expr '==' expr
-	    { new Stupid2::Equals($_[1], $_[3]); }
+	    { new Stupid2::Eq($_[1], $_[3]); }
 	|	expr 'ge8' expr
 	    { new Stupid::Ge8($_[1], $_[3]); }
 	|	expr 'le8' expr
@@ -139,27 +139,28 @@ expr	:	expr 'and32' expr
 exprlist:	exprlist ',' expr
 	    { $_[1]->appendExpr($_[3]); $_[1]; }
 	|	expr
-	    { my $t = new Stupid::ExprList(); $t->appendExpr($_[1]); $t; }
+	    { my $t = new Stupid2::ExprList(); $t->appendExpr($_[1]); $t; }
 	|
-	    { new Stupid::ExprList(); }
+	    { new Stupid2::ExprList(); }
 	;
 
 var	:	WORD
 	    { $::Context->findSymbol($_[1]); }
 	|	var '[' expr ']'
-	    { new Stupid::ArrayRef($_[1], $_[3]); }
+	    { new Stupid2::ArrayRef($_[1], $_[3]); }
 	|	expr '.' WORD
 	    { new Stupid::MemberRef($_[1], $_[3]); }
 	|	call
 	;
 
 call:	|	expr '(' exprlist ')'
-	    { new Stupid::FunctionCall($_[1], $_[3]); }
+	    { new Stupid2::FunctionCall($_[1], $_[3]); }
 	;
 
 decl	:	type vardecl '=' expr
-	    { new Stupid::Declare($::Context,
-				  new Stupid::Variable($_[1], $_[2]), $_[4]); }
+	    { new Stupid2::Declare($::Context,
+				   new Stupid2::Variable($_[1], $_[2]),
+				   $_[4]); }
 	;
 
 type	:	'int' '_' bitwidth
@@ -167,7 +168,7 @@ type	:	'int' '_' bitwidth
 	|	'ostream'
 	    { new Stupid::Type::OStream(); }
 	|	'array' '(' type ',' VALUE ')'
-	    { new Stupid::Type::Array($_[3], $_[5]); }
+	    { new Stupid2::Type::Array($_[3], $_[5]); }
 	|	'struct' WORD
 	    { new Stupid::Type::StructInstance($::Context, $_[2]); }
 	;
@@ -185,7 +186,7 @@ arrayval :	'[' val_list ']'
 val_list :	val_list ',' expr
 	    { $_[1]->append($_[3]); $_[1]; }
 	|	expr
-	    { my $t = new Stupid::ArrayValue(); $t->append($_[1]); $t; }
+	    { my $t = new Stupid2::ArrayValue(); $t->append($_[1]); $t; }
 	|	STRING
 	    { Stupid::ArrayFromString($_[1]); }
 	;
@@ -199,7 +200,7 @@ vardecl	:	WORD
 	;
 
 comment :	STRING
-	    { new Stupid::Comment($_[1]); }
+	    { new Stupid2::Comment($_[1]); }
 	;
 
 %%

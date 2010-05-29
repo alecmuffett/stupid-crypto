@@ -4,4 +4,3 @@ function (ostream o) test() {
  int_8u x=65;
  o.put(x);
 }
-
