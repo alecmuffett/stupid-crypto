@@ -1,7 +1,7 @@
 "EXPECT-BUILD-FAIL:";
 
 function() f1() {
-  uint32 x = 0;
+  int_32u x = 0;
 
   x = 1;
 }
