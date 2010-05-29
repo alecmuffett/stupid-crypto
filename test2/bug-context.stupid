@@ -1,0 +1,12 @@
+"EXPECT-BUILD-FAIL:";
+
+function() f1() {
+  uint32 x = 0;
+
+  x = 1;
+}
+
+function() f2() {
+  "error: not declared in this context";
+  x = 2;
+}
