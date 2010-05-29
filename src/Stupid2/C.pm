@@ -33,6 +33,23 @@ sub Stupid2::Type::Int::emitArg {
     $self->emitDeclaration($name);
 }
 
+sub Stupid2::Type::Int::dereference {
+    my $self = shift;
+
+    print '*';
+}
+
+sub Stupid2::Type::Int::emitPointer {
+    my $self = shift;
+
+    print '&';
+}
+
+# FIXME: bad name for this function
+sub Stupid2::Type::Int::emitParameter {
+    my $self = shift;
+}
+
 sub Stupid2::Equals::emitCode {
     my $self = shift;
 
