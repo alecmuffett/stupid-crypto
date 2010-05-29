@@ -774,7 +774,7 @@ sub deduceWidth {
     $self->{expr}->deduceWidth();
 }
 
-package Stupid::If;
+package Stupid2::If;
 
 use strict;
 
@@ -792,6 +792,14 @@ sub new {
     $self->{else} = $else;
 
     return $self;
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{cond}->deduceWidth();
+    $self->{then}->deduceWidth();
+    $self->{else}->deduceWidth();
 }
 
 package Stupid2::While;
@@ -932,20 +940,7 @@ sub new {
 package Stupid2::Eq;
 
 use strict;
-
-sub new {
-    my $class = shift;
-    my $l = shift;
-    my $r = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{left} = $l;
-    $self->{right} = $r;
-
-    return $self;
-}
+use base qw(Stupid2::Binary);
 
 package Stupid::Le8;
 
