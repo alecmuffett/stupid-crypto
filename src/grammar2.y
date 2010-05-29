@@ -107,16 +107,12 @@ expr	:	expr 'and32' expr
 	    { new Stupid::Mod8($_[1], $_[3]); }
 	|	expr 'mod32' expr
 	    { new Stupid::Mod32($_[1], $_[3]); }
-	|	expr 'ne32' expr
-	    { new Stupid::Ne32($_[1], $_[3]); }
-	|	expr 'ne8' expr
-	    { new Stupid::Ne8($_[1], $_[3]); }
+	|	expr '!=' expr
+	    { new Stupid2::Ne($_[1], $_[3]); }
 	|	expr 'or8' expr
 	    { new Stupid::Or8($_[1], $_[3]); }
-	|	expr 'plus8' expr
-	    { new Stupid::Plus8($_[1], $_[3]); }
-	|	expr 'plus32' expr
-	    { new Stupid::Plus32($_[1], $_[3]); }
+	|	expr '+' expr
+	    { new Stupid2::Plus($_[1], $_[3]); }
 	|	expr 'wrapplus32' expr
 	    { new Stupid::WrapPlus32($_[1], $_[3]); }
 	|	expr 'rrotate32' expr

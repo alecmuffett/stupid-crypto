@@ -75,7 +75,7 @@ sub lexer {
 
     my ($type, $value);
     # Punctuation
-    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=|\.|_)(.*)$/s) {
+    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=|\.|_|!=|\+)(.*)$/s) {
 	$type = $1;
 	$value = undef;
 	$code = $2;
@@ -1022,25 +1022,7 @@ sub value {
     return $self->{left}->value()->bmod($self->{right}->value());
 }
 
-package Stupid::Ne32;
-
-use strict;
-
-sub new {
-    my $class = shift;
-    my $l = shift;
-    my $r = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{left} = $l;
-    $self->{right} = $r;
-
-    return $self;
-}
-
-package Stupid::Ne8;
+package Stupid2::Ne;
 
 use strict;
 
@@ -1157,35 +1139,7 @@ sub value {
     return $self->{left}->value()->bior($self->{right}->value());
 }
 
-package Stupid::Plus8;
-
-use strict;
-
-# Unsigned decimal value, any length
-
-sub new {
-    my $class = shift;
-    my $l = shift;
-    my $r = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{left} = $l;
-    $self->{right} = $r;
-
-    return $self;
-}
-
-sub value {
-    my $self = shift;
-
-    # FIXME type and overflow checking
-    $self->{left}->value()->badd($self->{right}->value());
-}
-
-
-package Stupid::Plus32;
+package Stupid2::Plus;
 
 use strict;
 
@@ -1201,13 +1155,6 @@ sub new {
     $self->{right} = $r;
 
     return $self;
-}
-
-sub value {
-    my $self = shift;
-
-    # FIXME type and overflow checking
-    $self->{left}->value()->badd($self->{right}->value());
 }
 
 package Stupid::WrapPlus32;
