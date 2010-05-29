@@ -1,0 +1,11 @@
+"EXPECT:A";
+
+function (uint8 l)k() {
+ l=65;
+}
+
+function (ostream o) test() {
+ uint8 x=k();
+ o.put(x);
+}
+
