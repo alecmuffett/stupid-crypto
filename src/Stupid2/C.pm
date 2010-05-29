@@ -18,4 +18,19 @@ sub Stupid2::Type::Int::emitDeclaration {
     print $self->typeName(), " $name";
 }
 
+sub Stupid2::Type::Int::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    print $self->typeName(), " *$name";
+}
+
+sub Stupid2::Type::Int::emitArg {
+    my $self = shift;
+    my $name = shift;
+
+    print 'const ';
+    $self->emitDeclaration($name);
+}
+
 1;
