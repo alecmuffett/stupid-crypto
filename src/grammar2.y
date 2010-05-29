@@ -74,7 +74,7 @@ statement :	decl ';'
 	|	var '=' expr ';'
 	    { new Stupid2::Statement(new Stupid2::Set($_[1], $_[3])); }
 	| 	'if' '(' expr ')' '{' statements '}' 'else' '{' statements '}'
-	    { new Stupid::If($_[3], $_[6], $_[10]); }
+	    { new Stupid2::If($_[3], $_[6], $_[10]); }
 	| 	'while' '(' expr ')' '{' statements '}'
 	    { new Stupid2::While($_[3], $_[6]); }
 	|	call ';'
@@ -193,6 +193,8 @@ val_list :	val_list ',' expr
 
 value	:       arrayval
 	|	VALUE
+	|	VALUE '_' bitwidth
+	    { $_[1]->setWidth($_[3]); $_[1]; }
 	|	CHAR
 	;
 

@@ -1,9 +1,11 @@
 "EXPECT:B";
 
 function(ostream out) test() {
-   if(1 == 2) {
-      out.put(67);
+   int_8u x = 1;
+
+   if(x == 2) {
+      out.put(67_8u);
    } else {
-      out.put(66);
+      out.put(66_8u);
    }
 }

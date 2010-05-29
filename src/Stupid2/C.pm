@@ -94,6 +94,18 @@ sub Stupid2::FunctionCall::emitCode {
     print ");\n";
 }
 
+sub Stupid2::If::emitCode {
+    my $self = shift;
+
+    print 'if (';
+    $self->{cond}->emitCode();
+    print ") {\n";
+    $self->{then}->emitCode();
+    print "} else {\n";
+    $self->{else}->emitCode();
+    print "}\n";
+}
+
 sub Stupid2::While::emitCode {
     my $self = shift;
 
@@ -248,6 +260,12 @@ sub Stupid2::DecimalValue::emitCode {
 
     print $self->{value};
     print 'U' if !$self->signed();
+}
+
+sub Stupid2::DecimalValue::emitParameter {
+    my $self = shift;
+
+    $self->emitCode();
 }
 
 sub Stupid2::Eq::emitCode {
