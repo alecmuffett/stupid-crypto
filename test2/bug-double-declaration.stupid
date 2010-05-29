@@ -4,7 +4,7 @@ function(ostream out) test() {
   out.put(65);
 }
 
-function (uint8 i) broken (uint8 x) {
+function (int_8u i) broken (int_8u x) {
 "this second declaration of i should cause an error";
-uint8 i = 0;
+int_8u i = 0;
 }
