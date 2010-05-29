@@ -38,6 +38,8 @@ use Data::Dumper; $Data::Dumper::Indent=1; print STDERR Data::Dumper->Dump([\$pt
 #$ptree->value();
 #$::Context->dumpSymbols();
 
+$ptree->deduceWidth();
+
 my $wrapped = new Stupid::LanguageWrapper($ptree);
 $wrapped->{sourceFile} = $sourceFile;
 
@@ -92,16 +94,16 @@ sub lexer {
     # decimal UVALUE
     } elsif($code =~ /^([0-9]+)u(.*)$/s) {
 	$type = 'UVALUE';
-	$value = new Stupid::DecimalValue($1);
+	$value = new Stupid2::DecimalValue($1);
 	$code = $2;
     # decimal VALUE
     } elsif($code =~ /^([0-9]+)(.*)$/s) {
 	$type = 'VALUE';
-	$value = new Stupid::DecimalValue($1);
+	$value = new Stupid2::DecimalValue($1);
 	$code = $2;
     } elsif($code =~ /^'(.)'(.*)$/s) {
 	$type = 'CHAR';
-	$value = new Stupid::DecimalValue(ord($1));
+	$value = new Stupid2::DecimalValue(ord($1));
 	$code = $2;
     # WORD
     } elsif($code =~ /^([A-Za-z][A-Za-z0-9]*)(.*)$/s) {
@@ -161,7 +163,7 @@ sub new {
     return $self;
 }
 
-sub isSigned {
+sub signed {
     my $self = shift;
 
     return $self->{signed};
@@ -173,7 +175,97 @@ sub bits {
     return $self->{width}->value();
 }
 
+package Stupid2::ArrayWidth;
+
+use strict;
+
+sub new {
+    my $class = shift;
+    my $count = shift;
+    my $width = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{count} = $count;
+    $self->{width} = $width;
+
+    return $self;
+}
+
+package Stupid2::HasWidth;
+
+# A base class for things with a width, intended for multiple
+# inheritance Anything that inherits from this should be able to
+# figure out its width from its children. If any of its children do
+# not have a width set, then it should be set after
+# deduction. Children should also be checked for consistency.
+
+use strict;
+use Carp;
+
+sub width {
+    my $self = shift;
+
+    confess if !defined $self->{width};
+    return $self->{width};
+}
+
+sub maybeWidth {
+    my $self = shift;
+
+    return $self->{width};
+}
+
+sub bits {
+    my $self = shift;
+
+    return $self->width()->bits();
+}
+
+sub signed {
+    my $self = shift;
+
+    return $self->width()->signed();
+}
+
+sub setWidth {
+    my $self = shift;
+    my $width = shift;
+
+    if(!defined $self->{width}) {
+	$self->{width} = $width;
+	return;
+    } else {
+	croak "Widths don't match" if !$self->{width}->equals($width);
+    }
+    $self->setChildrensWidth($width);
+}
+
+sub maybeSetWidth {
+    my $self = shift;
+    my $width = shift;
+
+    return if !defined $width;
+    $self->setWidth($width);
+}
+
+package Stupid2::HasWidthWithoutDeduction;
+
+# A base class for things with a width that cannot dedice their width
+# from their children. Width should be set from on high.
+
+use strict;
+use base qw(Stupid2::HasWidth);
+
+sub deduceWidth {
+    # can't!
+}  
+
 package Stupid2::Type::Int;
+
+use strict;
+use base qw(Stupid2::HasWidth);
 
 sub new {
     my $class = shift;
@@ -194,9 +286,10 @@ use strict;
 sub ArrayFromString {
     my $str = shift;
 
-    my $t = new Stupid::ArrayValue();
+    my $t = new Stupid2::ArrayValue();
     foreach my $c (split //, $str) {
-	$t->append(new Stupid::DecimalValue(ord($c)));
+	$t->append(new Stupid2::DecimalValue(ord($c),
+					     new Stupid2::Bitwidth(8, 0)));
     }
 
     return $t;
@@ -291,7 +384,7 @@ sub asString {
     return $str;
 }
 
-package Stupid::Function;
+package Stupid2::Function;
 
 use strict;
 
@@ -322,9 +415,15 @@ sub name {
     return $self->{name};
 }
 
-package Stupid::TopLevelList;
+sub deduceWidth {
+    my $self = shift;
 
-# FIXME: topl-level classes should inherit from a TopLevel class.
+    $self->{body}->deduceWidth();
+}
+
+package Stupid2::TopLevelList;
+
+# FIXME: top-level classes should inherit from a TopLevel class.
 
 use strict;
 
@@ -344,6 +443,14 @@ sub appendTopLevel {
     my $tl = shift;
 
     push @{$self->{topLevels}}, $tl;
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    foreach my $tl (@{$self->{topLevels}}) {
+	$tl->deduceWidth();
+    }
 }
 
 package Stupid::Type::Struct;
@@ -450,7 +557,7 @@ sub findDeclaration {
     croak "Can't find declaration of $name";
 }
 
-package Stupid::ExprList;
+package Stupid2::ExprList;
 
 use strict;
 
@@ -478,7 +585,15 @@ sub isEmpty {
     return $#{$self->{expressions}} == -1;
 }
 
-package Stupid::FunctionCall;
+sub deduceWidth {
+    my $self = shift;
+
+    foreach my $expr (@{$self->{expressions}}) {
+	$expr->deduceWidth();
+    }
+}
+
+package Stupid2::FunctionCall;
 
 use strict;
 
@@ -494,6 +609,14 @@ sub new {
     $self->{args} = $args;
 
     return $self;
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+# Don't need to do the function, since that should be done where it is
+# declared.
+    $self->{args}->deduceWidth();
 }
 
 package Stupid::MemberRef;
@@ -514,7 +637,7 @@ sub new {
     return $self;
 }
 
-package Stupid::Comment;
+package Stupid2::Comment;
 
 use strict;
 
@@ -530,11 +653,7 @@ sub new {
     return $self;
 }
 
-sub value {
-    my $self = shift;
-
-    print "# $self->{comment}\n";
-    return undef;
+sub deduceWidth {
 }
 
 package Stupid::ArgList;
@@ -575,11 +694,10 @@ sub markAsArgument {
     }
 }
 
-package Stupid::ArrayRef;
+package Stupid2::ArrayRef;
 
 use strict;
-
-# A followed by B (as in two statements). No value.
+use base qw(Stupid2::HasWidth);
 
 sub new {
     my $class = shift;
@@ -595,22 +713,14 @@ sub new {
     return $self;
 }
 
-sub value {
+sub deduceWidth {
     my $self = shift;
 
-    # FIXME range checking
-    return $self->{array}->value()->[$self->{offset}->value()];
+    $self->{offset}->deduceWidth();
+    $self->maybeSetWidth($self->{array}->memberWidth());
 }
 
-sub setValue {
-    my $self = shift;
-    my $value = shift;
-
-    # FIXME range checking
-    return $self->{array}->value()->[$self->{offset}->value()] = $value;
-}
-
-package Stupid::StatementList;
+package Stupid2::StatementList;
 
 use strict;
 
@@ -632,17 +742,17 @@ sub appendStatement {
     push @{$self->{statements}}, $statement;
 }
 
-sub value {
+sub deduceWidth {
     my $self = shift;
 
     for my $s (@{$self->{statements}}) {
-	$s->value();
+	$s->deduceWidth();
     }
 
     return undef;
 }
 
-package Stupid::Statement;
+package Stupid2::Statement;
 
 use strict;
 
@@ -656,6 +766,12 @@ sub new {
     $self->{expr} = $expr;
 
     return $self;
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{expr}->deduceWidth();
 }
 
 package Stupid::If;
@@ -678,7 +794,7 @@ sub new {
     return $self;
 }
 
-package Stupid::While;
+package Stupid2::While;
 
 use strict;
 
@@ -696,11 +812,18 @@ sub new {
     return $self;
 }
 
-package Stupid::Set;
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{cond}->deduceWidth();
+    $self->{body}->deduceWidth();
+}
+
+package Stupid2::Binary;
 
 use strict;
-
-# A = B
+use base qw(Stupid2::HasWidth);
+use Carp;
 
 sub new {
     my $class = shift;
@@ -716,17 +839,26 @@ sub new {
     return $self;
 }
 
-sub value {
+sub deduceWidth {
     my $self = shift;
 
-    return $self->{left}->setValue($self->{right}->value());
+    $self->{left}->deduceWidth();
+    $self->{right}->deduceWidth();
+
+    $self->{left}->maybeSetWidth($self->{right}->maybeWidth());
+    $self->{right}->maybeSetWidth($self->{left}->maybeWidth());
 }
+
+package Stupid2::Set;
+
+# A = B
+
+use strict;
+use base qw(Stupid2::Binary);
 
 package Stupid::And32;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -746,8 +878,6 @@ package Stupid::And8;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -765,8 +895,6 @@ sub new {
 package Stupid::BAnd;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -787,8 +915,6 @@ package Stupid::BOr;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -803,11 +929,9 @@ sub new {
     return $self;
 }
 
-package Stupid2::Equals;
+package Stupid2::Eq;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -826,8 +950,6 @@ sub new {
 package Stupid::Le8;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -848,8 +970,6 @@ package Stupid::Ge8;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -869,8 +989,6 @@ package Stupid::LShift32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -888,8 +1006,6 @@ sub new {
 package Stupid::LShift8;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -916,8 +1032,6 @@ package Stupid::Minus8;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -942,8 +1056,6 @@ sub value {
 package Stupid::Minus32;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -971,8 +1083,6 @@ package Stupid::Mod8;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -999,8 +1109,6 @@ package Stupid::Mod32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -1025,26 +1133,11 @@ sub value {
 package Stupid2::Ne;
 
 use strict;
-
-sub new {
-    my $class = shift;
-    my $l = shift;
-    my $r = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{left} = $l;
-    $self->{right} = $r;
-
-    return $self;
-}
+use base qw(Stupid2::Binary);
 
 package Stupid::Mask32To8;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -1062,8 +1155,6 @@ package Stupid::Not32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $operand = shift;
@@ -1079,8 +1170,6 @@ sub new {
 package Stupid::Not8;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -1098,8 +1187,6 @@ package Stupid::Widen8To32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $operand = shift;
@@ -1115,8 +1202,6 @@ sub new {
 package Stupid::Or8;
 
 use strict;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -1142,20 +1227,7 @@ sub value {
 package Stupid2::Plus;
 
 use strict;
-
-sub new {
-    my $class = shift;
-    my $l = shift;
-    my $r = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{left} = $l;
-    $self->{right} = $r;
-
-    return $self;
-}
+use base qw(Stupid2::Binary);
 
 package Stupid::WrapPlus32;
 
@@ -1204,8 +1276,6 @@ package Stupid::RShift32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -1231,8 +1301,6 @@ package Stupid::XOr32;
 
 use strict;
 
-# Unsigned decimal value, any length
-
 sub new {
     my $class = shift;
     my $l = shift;
@@ -1247,9 +1315,10 @@ sub new {
     return $self;
 }
 
-package Stupid::Declare;
+package Stupid2::Declare;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 
 # declaration of a variable
 
@@ -1292,6 +1361,14 @@ sub findMember {
     my $member = shift;
 
     return $self->{var}->findMember($member);
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{var}->deduceWidth();
+    $self->{var}->maybeSetWidth($self->{init}->maybeWidth());
+    $self->{init}->maybeSetWidth($self->{var}->maybeWidth());
 }
 
 package Stupid::Type::OStream::Put;
@@ -1394,7 +1471,7 @@ sub checkValue {
     return $self->{value};
 }
 
-package Stupid::Type::Array;
+package Stupid2::Type::Array;
 
 use strict;
 use Carp;
@@ -1421,9 +1498,22 @@ sub checkValue {
     # FIXME check size and type of each value
 }
 
-package Stupid::Variable;
+sub memberWidth {
+    my $self = shift;
+
+    return $self->{type}->width();
+}
+
+sub width {
+    my $self = shift;
+
+    return new Stupid2::ArrayWidth($self->{size}, $self->{type}->width());
+}
+
+package Stupid2::Variable;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 use Carp;
 
 # A variable of some type
@@ -1443,25 +1533,10 @@ sub new {
     return $self;
 }
 
-sub setValue {
-    my $self = shift;
-    my $value = shift;
-
-    confess "value is null" if !defined $value;
-    $self->{type}->checkValue($value);
-    $self->{value} = $value;
-}
-
 sub name {
     my $self = shift;
 
     return $self->{name};
-}
-
-sub value {
-    my $self = shift;
-
-    return $self->{value};
 }
 
 sub markAsReturn {
@@ -1481,6 +1556,19 @@ sub findMember {
     my $member = shift;
 
     return $self->{type}->findMember($member);
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{width} = $self->{type}->width();
+    croak if !defined $self->{width};
+}
+
+sub memberWidth {
+    my $self = shift;
+
+    return $self->{type}->memberWidth();
 }
 
 package Stupid::HexValue;
@@ -1517,21 +1605,22 @@ sub bior {
     return $self->{value}->bior($right);
 }
 
-package Stupid::DecimalValue;
+package Stupid2::DecimalValue;
 
 use strict;
+use base qw(Stupid2::HasWidthWithoutDeduction);
 use Math::BigInt;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
     my $value = shift;
+    my $width = shift;
 
     my $self = {};
     bless $self, $class;
 
     $self->{value} = new Math::BigInt($value);
+    $self->{width} = $width;
 
     return $self;
 }
@@ -1542,12 +1631,11 @@ sub value {
     return $self->{value};
 }
 
-package Stupid::ArrayValue;
+package Stupid2::ArrayValue;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 use Math::BigInt;
-
-# Unsigned decimal value, any length
 
 sub new {
     my $class = shift;
@@ -1567,7 +1655,7 @@ sub append {
     push @{$self->{values}}, $value;
 }
 
-sub value {
+sub values {
     my $self = shift;
 
     return $self->{values};

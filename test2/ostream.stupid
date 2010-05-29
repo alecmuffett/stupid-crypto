@@ -1,11 +1,11 @@
 "EXPECT:Hello, world!";
 
 function(ostream out) test() {
-  array(uint8, 13) hello = [ "Hello, world!" ];
-  uint32 n = 0;
+  array(int_8u, 13) hello = [ "Hello, world!" ];
+  int_32u n = 0;
 
-  while(n ne32 13) {
+  while(n != 13) {
     out.put(hello[n]);
-    n = n plus32 1;
+    n = n + 1;
   }
 }
