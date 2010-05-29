@@ -18,9 +18,14 @@ my $quietbuild;
 croak if !GetOptions("language=s" => \$language,
                      "quietbuild" => \$quietbuild);
 
-opendir(D, '.') || croak "Can't open .: $!";
-my @tests = sort grep { /\.stupid$/ } readdir(D);
-closedir(D);
+my @tests;
+if($#ARGV >= 0) {
+    @tests = @ARGV;
+} else {
+    opendir(D, '.') || croak "Can't open .: $!";
+    @tests = sort grep { /\.stupid$/ } readdir(D);
+    closedir(D);
+}
 
 my $failed = 0;
 my $skipped = 0;

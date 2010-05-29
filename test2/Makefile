@@ -7,6 +7,9 @@ generated-dirs:
 	mkdir -p generated/Haskell
 	mkdir -p generated/Java
 
+singleC:
+	./test.pl -language=C $(SINGLE)
+
 testC: generated-dirs
 	./test.pl -language=C
 
