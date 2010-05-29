@@ -1,0 +1,8 @@
+"EXPECT:C";
+
+function (ostream o) test() {
+
+array(int_8u, 3) k = [65,66,67];
+
+o.put(k[2]);
+}
