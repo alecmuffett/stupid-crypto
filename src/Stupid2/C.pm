@@ -11,4 +11,11 @@ sub Stupid2::Type::Int::typeName {
     return $base . $self->{width}->bits();
 }
 
+sub Stupid2::Type::Int::emitDeclaration {
+    my $self = shift;
+    my $name = shift;
+
+    print $self->typeName(), " $name";
+}
+
 1;
