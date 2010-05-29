@@ -1,11 +1,11 @@
 "EXPECT:A";
 
-function (uint8 l)k() {
+function (int_8u l) k() {
  l=65;
 }
 
 function (ostream o) test() {
- uint8 x=k();
+ int_8u x=k();
  o.put(x);
 }
 
