@@ -1,0 +1,7 @@
+"EXPECT:A";
+
+function (ostream o) test() {
+ uint8 x=65;
+ o.put(x);
+}
+
