@@ -2,7 +2,7 @@
 
 function (ostream o) test() {
 
-array(uint8, 3) k = [ 66, 66, 66 ];
+array(int_8u, 3) k = [ 66, 66, 66 ];
 
 k[1] = 65;
 
