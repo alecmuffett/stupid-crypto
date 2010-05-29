@@ -1,3 +1,6 @@
+grammar2.pm: grammar2.y
+	yapp -v grammar2.y
+
 grammar.pm: grammar.y
 	yapp -v grammar.y
 

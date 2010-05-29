@@ -2,6 +2,8 @@
 .*\.hi
 .*\.o
 src/grammar\.pm
+src/grammar2\.pm
 src/stupid\.tgz
 test/generated/.*
 test/test_sha256
+test2/generated/.*
