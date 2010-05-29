@@ -75,7 +75,7 @@ sub lexer {
 
     my ($type, $value);
     # Punctuation
-    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|=|\.|_|!=|\+)(.*)$/s) {
+    if($code =~ /^(\(|\)|\[|\]|{|}|,|;|\.|_|==|!=|\+|=)(.*)$/s) {
 	$type = $1;
 	$value = undef;
 	$code = $2;
@@ -803,7 +803,7 @@ sub new {
     return $self;
 }
 
-package Stupid::Eq32;
+package Stupid2::Equals;
 
 use strict;
 
