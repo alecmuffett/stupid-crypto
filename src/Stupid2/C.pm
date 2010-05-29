@@ -227,6 +227,14 @@ sub Stupid2::Variable::emitLValue {
     print $self->{name};
 }
 
+sub Stupid2::Variable::emitParameter {
+    my $self = shift;
+
+    $self->{type}->emitParameter()
+      if !$self->{isReturn} && !$self->{isArgument};;
+    print $self->{name};
+}
+
 sub Stupid2::ArrayRef::emitParameter {
     my $self = shift;
 
