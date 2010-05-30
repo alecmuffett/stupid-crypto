@@ -4,5 +4,6 @@ function (ostream o) test() {
 
 array(int_8u, 3) k = [65,66,67];
 
-o.put(k[2]);
+"FIXME: should the size of 2 be automagic?";
+o.put(k[2_8]);
 }
