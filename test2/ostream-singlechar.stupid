@@ -1,5 +1,6 @@
 "EXPECT:C";
 
 function(ostream out) test() {
-   out.put(67);
+   "FIXME: we should be able to deduce the width here";
+   out.put(67_8);
 }
