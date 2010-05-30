@@ -151,6 +151,9 @@ sub error {
 
 package Stupid2::Bitwidth;
 
+use strict;
+use Carp;
+
 sub new {
     my $class = shift;
     my $width = shift;
@@ -161,6 +164,11 @@ sub new {
 
     $self->{width} = $width;
     $self->{signed} = $signed;
+
+    croak 'Weird width'
+	if (!defined($self->{width}) && defined($self->{signed}))
+	|| (defined($self->{width}) && !defined($self->{signed}));
+			    
 
     return $self;
 }
@@ -177,12 +185,37 @@ sub bits {
     return $self->{width}->value();
 }
 
+sub asString {
+    my $self = shift;
+
+    if(!defined $self->{width}) {
+	croak if defined $self->{signed};
+	return '[undefined]';
+    }
+
+    my $str = $self->{width}->value();
+    $str .= 'u' if !$self->{signed};
+}
+
 sub equals {
     my $self = shift;
     my $other = shift;
 
-    return $self->{width} == $other->{width}
+    return $self->{width}->value() == $other->{width}->value()
       && $self->{signed} == $other->{signed};
+}
+
+sub merge {
+    my $self = shift;
+    my $other = shift;
+
+    $self->{width} = $other->{width} if !defined $self->{width};
+    $self->{signed} = $other->{signed} if !defined $self->{signed};
+
+    return if !defined $other->{width};
+
+    confess 'Can\'t merge non-identical Bitwidths: '.$self->asString()
+	.'/'.$other->asString() if !$self->equals($other);
 }
 
 package Stupid2::ArrayWidth;
@@ -303,7 +336,7 @@ sub setChildrensWidth {
 package Stupid2::Type::Int;
 
 use strict;
-use base qw(Stupid2::HasWidth);
+use base qw(Stupid2::HasWidthWithoutDeduction);
 
 sub new {
     my $class = shift;
@@ -327,7 +360,7 @@ sub ArrayFromString {
     my $t = new Stupid2::ArrayValue();
     foreach my $c (split //, $str) {
 	$t->append(new Stupid2::DecimalValue(ord($c),
-					     new Stupid2::Bitwidth(8, 0)));
+		    new Stupid2::Bitwidth(new Stupid2::DecimalValue(8), 0)));
     }
 
     return $t;
@@ -902,6 +935,14 @@ sub deduceWidth {
 
     $self->{left}->maybeSetWidth($self->{right}->maybeWidth());
     $self->{right}->maybeSetWidth($self->{left}->maybeWidth());
+}
+
+sub setChildrensWidth {
+    my $self = shift;
+    my $width = shift;
+
+    $self->{left}->setWidth($width);
+    $self->{right}->setWidth($width);
 }
 
 package Stupid2::Set;
