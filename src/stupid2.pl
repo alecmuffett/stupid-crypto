@@ -1,7 +1,7 @@
 #!/bin/sh
 eval 'exec perl -x -w $0 ${1+"$@"}'
 
-#!perl actually starts here.
+#!perl actually starts here. Note this throws all lines numbers out by 3.
 
 use strict;
 
@@ -39,6 +39,8 @@ use Data::Dumper; $Data::Dumper::Indent=1; print STDERR Data::Dumper->Dump([\$pt
 #$::Context->dumpSymbols();
 
 $ptree->deduceWidth();
+
+use Data::Dumper; $Data::Dumper::Indent=1; print STDERR Data::Dumper->Dump([\$ptree]) if $debug;
 
 my $wrapped = new Stupid::LanguageWrapper($ptree);
 $wrapped->{sourceFile} = $sourceFile;
@@ -175,9 +177,18 @@ sub bits {
     return $self->{width}->value();
 }
 
+sub equals {
+    my $self = shift;
+    my $other = shift;
+
+    return $self->{width} == $other->{width}
+      && $self->{signed} == $other->{signed};
+}
+
 package Stupid2::ArrayWidth;
 
 use strict;
+use Carp;
 
 sub new {
     my $class = shift;
@@ -191,6 +202,26 @@ sub new {
     $self->{width} = $width;
 
     return $self;
+}
+
+sub getArrayElementWidth {
+    my $self = shift;
+
+    return $self->{width};
+}
+
+sub merge {
+    my $self = shift;
+    my $other = shift;
+
+    if(ref($other) ne ref($self)) {
+	croak 'Can\'t merge width of type '.ref($other)
+	    .' with width of type '.ref($self);
+    }
+    croak 'Array widths differ' if !$self->{width}->equals($other->{width});
+    $self->{count} = $other->{count} if !defined $self->{count};
+    return if !defined $other->{count};
+    croak 'Array counts differ' if $self->{count} != $other->{count};
 }
 
 package Stupid2::HasWidth;
@@ -207,7 +238,7 @@ use Carp;
 sub width {
     my $self = shift;
 
-    confess if !defined $self->{width};
+    confess 'No width set' if !defined $self->{width};
     return $self->{width};
 }
 
@@ -235,11 +266,13 @@ sub setWidth {
 
     if(!defined $self->{width}) {
 	$self->{width} = $width;
-	return;
     } else {
-	croak "Widths don't match" if !$self->{width}->equals($width);
+	# Note that the width might be compatible but have more or
+	# less info, e.g. an ArrayWidth with no count.  If the width
+	# is not compatible, then the callee should croak.
+	$self->{width}->merge($width);
     }
-    $self->setChildrensWidth($width);
+    $self->setChildrensWidth();
 }
 
 sub maybeSetWidth {
@@ -252,7 +285,7 @@ sub maybeSetWidth {
 
 package Stupid2::HasWidthWithoutDeduction;
 
-# A base class for things with a width that cannot dedice their width
+# A base class for things with a width that cannot deduce their width
 # from their children. Width should be set from on high.
 
 use strict;
@@ -261,6 +294,11 @@ use base qw(Stupid2::HasWidth);
 sub deduceWidth {
     # can't!
 }  
+
+sub setChildrensWidth {
+    # if we can't work out our width from our children, then we can't
+    # work out their width from our width. I think.
+}
 
 package Stupid2::Type::Int;
 
@@ -718,6 +756,15 @@ sub deduceWidth {
 
     $self->{offset}->deduceWidth();
     $self->maybeSetWidth($self->{array}->memberWidth());
+}
+
+sub setChildrensWidth {
+    my $self = shift;
+
+    # We don't know what the array count is, but we do know what its
+    # width should be.
+    my $array_width = new Stupid2::ArrayWidth(undef, $self->{width});
+    $self->{array}->setWidth($array_width);
 }
 
 package Stupid2::StatementList;
@@ -1469,11 +1516,13 @@ sub checkValue {
 package Stupid2::Type::Array;
 
 use strict;
+use base qw(Stupid2::HasWidthWithoutDeduction);
 use Carp;
 
 sub new {
     my $class = shift;
     my $type = shift;
+    # FIXME: $size should be $count...
     my $size = shift;
 
     my $self = {};
@@ -1566,6 +1615,12 @@ sub memberWidth {
     return $self->{type}->memberWidth();
 }
 
+sub setChildrensWidth {
+    my $self = shift;
+
+    $self->{type}->setWidth($self->{width});
+}
+
 package Stupid::HexValue;
 
 use strict;
@@ -1654,4 +1709,13 @@ sub values {
     my $self = shift;
 
     return $self->{values};
+}
+
+sub setChildrensWidth {
+    my $self = shift;
+
+    my $child_width = $self->{width}->getArrayElementWidth();
+    foreach my $value (@{$self->{values}}) {
+	$value->setWidth($child_width);
+    }
 }
