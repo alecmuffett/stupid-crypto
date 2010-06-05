@@ -686,6 +686,7 @@ sub deduceWidth {
 package Stupid2::FunctionCall;
 
 use strict;
+use Carp;
 
 sub new {
     my $class = shift;
@@ -707,6 +708,20 @@ sub deduceWidth {
 # Don't need to do the function, since that should be done where it is
 # declared.
     $self->{args}->deduceWidth();
+}
+
+sub maybeWidth {
+    my $self = shift;
+
+    return undef;
+}
+
+sub maybeSetWidth {
+    my $self = shift;
+    my $width = shift;
+
+# FIXME: is this actually wrong?
+#    confess "Setting function call width" if defined $width;
 }
 
 package Stupid::MemberRef;
