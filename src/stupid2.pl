@@ -308,7 +308,7 @@ sub setWidth {
     my $width = shift;
 
     if (!defined $width) {
-	croak "Trying to unset width!" if defined $self->{width};
+	confess "Trying to unset width!" if defined $self->{width};
 	return;
     }
 
@@ -1003,10 +1003,9 @@ sub deduceWidth {
 
 sub setChildrensWidth {
     my $self = shift;
-    my $width = shift;
 
-    $self->{left}->setWidth($width);
-    $self->{right}->setWidth($width);
+    $self->{left}->setWidth($self->{width});
+    $self->{right}->setWidth($self->{width});
 }
 
 package Stupid2::Set;
