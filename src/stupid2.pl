@@ -159,13 +159,17 @@ sub new {
     my $width = shift;
     my $signed = shift;
 
+    $width = new Math::BigInt($width) if ref($width) eq '';
+
     my $self = {};
     bless $self, $class;
+
+    confess ref($width) if ref($width) ne 'Math::BigInt';
 
     $self->{width} = $width;
     $self->{signed} = $signed;
 
-    croak 'Weird width'
+    confess 'Weird width'
 	if (!defined($self->{width}) && defined($self->{signed}))
 	|| (defined($self->{width}) && !defined($self->{signed}));
 			    
@@ -182,7 +186,7 @@ sub signed {
 sub bits {
     my $self = shift;
 
-    return $self->{width}->value();
+    return $self->{width};
 }
 
 sub asString {
@@ -201,13 +205,15 @@ sub equals {
     my $self = shift;
     my $other = shift;
 
-    return $self->{width}->value() == $other->{width}->value()
+    return $self->{width} == $other->{width}
       && $self->{signed} == $other->{signed};
 }
 
 sub merge {
     my $self = shift;
     my $other = shift;
+
+    croak ref($other) if ref($other) ne 'Stupid2::Bitwidth';
 
     $self->{width} = $other->{width} if !defined $self->{width};
     $self->{signed} = $other->{signed} if !defined $self->{signed};
@@ -228,6 +234,8 @@ sub new {
     my $count = shift;
     my $width = shift;
 
+    croak ref($width) if ref($width) ne 'Stupid2::Bitwidth';
+
     my $self = {};
     bless $self, $class;
 
@@ -246,6 +254,8 @@ sub getArrayElementWidth {
 sub merge {
     my $self = shift;
     my $other = shift;
+
+    croak ref($other) if ref($other) ne 'Stupid2::ArrayWidth';
 
     if(ref($other) ne ref($self)) {
 	croak 'Can\'t merge width of type '.ref($other)
@@ -297,6 +307,14 @@ sub setWidth {
     my $self = shift;
     my $width = shift;
 
+    if (!defined $width) {
+	croak "Trying to unset width!" if defined $self->{width};
+	return;
+    }
+
+    confess ref($width) if ref($width) ne 'Stupid2::Bitwidth'
+	&& ref($width) ne 'Stupid2::ArrayWidth';
+
     if(!defined $self->{width}) {
 	$self->{width} = $width;
     } else {
@@ -337,6 +355,7 @@ package Stupid2::Type::Int;
 
 use strict;
 use base qw(Stupid2::HasWidthWithoutDeduction);
+use Carp;
 
 sub new {
     my $class = shift;
@@ -345,7 +364,7 @@ sub new {
     my $self = {};
     bless $self, $class;
 
-    $self->{width} = $width;
+    $self->setWidth($width);
 
     return $self;
 }
@@ -360,7 +379,7 @@ sub ArrayFromString {
     my $t = new Stupid2::ArrayValue();
     foreach my $c (split //, $str) {
 	$t->append(new Stupid2::DecimalValue(ord($c),
-		    new Stupid2::Bitwidth(new Stupid2::DecimalValue(8), 0)));
+		    new Stupid2::Bitwidth(8, 0)));
     }
 
     return $t;
@@ -765,6 +784,48 @@ sub markAsArgument {
     }
 }
 
+package Stupid2::DecimalValue;
+
+use strict;
+use base qw(Stupid2::HasWidthWithoutDeduction);
+use Math::BigInt;
+use Carp;
+
+sub new {
+    my $class = shift;
+    my $value = shift;
+    my $width = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{value} = new Math::BigInt($value);
+    $self->setWidth($width);
+
+    return $self;
+}
+
+sub value {
+    my $self = shift;
+
+    return $self->{value};
+}
+
+sub setAppropriateWidth {
+    my $self = shift;
+
+    if ($self->{value} >= 0) {
+	if ($self->{value} < 256) {
+	    $self->setWidth(new Stupid2::Bitwidth(8, 0));
+	} else {
+	    $self->setWidth(new Stupid2::Bitwidth(32, 0));
+	}
+    } else {
+	croak;
+    }
+}
+	
+
 package Stupid2::ArrayRef;
 
 use strict;
@@ -788,6 +849,9 @@ sub deduceWidth {
     my $self = shift;
 
     $self->{offset}->deduceWidth();
+    if (!defined $self->{offset}->maybeWidth()) {
+	$self->{offset}->setAppropriateWidth();
+    }
     $self->maybeSetWidth($self->{array}->memberWidth());
 }
 
@@ -1646,7 +1710,7 @@ sub findMember {
 sub deduceWidth {
     my $self = shift;
 
-    $self->{width} = $self->{type}->width();
+    $self->setWidth($self->{type}->width());
     croak if !defined $self->{width};
 }
 
@@ -1694,32 +1758,6 @@ sub bior {
     my $right = shift;
 
     return $self->{value}->bior($right);
-}
-
-package Stupid2::DecimalValue;
-
-use strict;
-use base qw(Stupid2::HasWidthWithoutDeduction);
-use Math::BigInt;
-
-sub new {
-    my $class = shift;
-    my $value = shift;
-    my $width = shift;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{value} = new Math::BigInt($value);
-    $self->{width} = $width;
-
-    return $self;
-}
-
-sub value {
-    my $self = shift;
-
-    return $self->{value};
 }
 
 package Stupid2::ArrayValue;

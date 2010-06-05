@@ -174,9 +174,9 @@ type	:	'int' '_' bitwidth
 	;
 
 bitwidth :      VALUE
-	    { new Stupid2::Bitwidth($_[1], 1); }
+	    { new Stupid2::Bitwidth($_[1]->value(), 1); }
 	|	UVALUE
-	    { new Stupid2::Bitwidth($_[1], 0); }
+	    { new Stupid2::Bitwidth($_[1]->value(), 0); }
 	;
 
 arrayval :	'[' val_list ']'
