@@ -1,7 +1,8 @@
 "EXPECT-BUILD-FAIL:";
 
 function(ostream out) test() {
-  out.put(65);
+  "FIXME: should deduce this width";
+  out.put(65_8);
 }
 
 function (int_8u i) broken (int_8u x) {
