@@ -68,6 +68,12 @@ sub Stupid2::Declare::emitCode {
     print ";\n";
 }
 
+sub Stupid2::Declare::emitArg {
+    my $self = shift;
+
+    $self->{var}->emitArg();
+}
+
 sub Stupid2::Set::emitCode {
     my $self = shift;
 
@@ -233,6 +239,12 @@ sub Stupid2::Variable::emitParameter {
     $self->{type}->emitParameter()
       if !$self->{isReturn} && !$self->{isArgument};;
     print $self->{name};
+}
+
+sub Stupid2::Variable::emitArg {
+    my $self = shift;
+
+    $self->{type}->emitArg($self->{name});
 }
 
 sub Stupid2::ArrayRef::emitParameter {
