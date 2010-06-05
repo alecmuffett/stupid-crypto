@@ -28,6 +28,15 @@ sub Stupid2::Function::emitCode {
     print "}\n";
 }
 
+sub Stupid2::Function::emitCall {
+    my $self = shift;
+
+    print $self->{name};
+}
+
+sub Stupid2::Function::maybeAddSelf {
+}
+
 sub Stupid2::StatementList::emitCode {
     my $self = shift;
 
@@ -80,7 +89,7 @@ sub Stupid2::Set::emitCode {
     # special case ... clearly we could do this in full generality,
     # e.g f()[8] or f().foo or (a, b) = (c, d) or (a, b) = (b, a)
     # [hmmm]
-    if(ref($self->{right}) eq 'Stupid::FunctionCall') {
+    if(ref($self->{right}) eq 'Stupid2::FunctionCall') {
 	$self->{right}->emitCallWithLValue($self->{left});
 	return;
     }
@@ -96,6 +105,18 @@ sub Stupid2::FunctionCall::emitCode {
     $self->{function}->emitCall();
     print '(';
     $self->{function}->maybeAddSelf();
+    $self->{args}->emitParameters();
+    print ");\n";
+}
+
+sub Stupid2::FunctionCall::emitCallWithLValue {
+    my $self = shift;
+    my $lvalue = shift;
+
+    $self->{function}->emitCall();
+    print '(';
+    $lvalue->emitPointer();
+    print ', ' if !$self->{args}->isEmpty();
     $self->{args}->emitParameters();
     print ");\n";
 }
@@ -186,7 +207,7 @@ sub Stupid2::Variable::emitDeclaration {
     # special case ... clearly we could do this in full generality,
     # e.g f()[8] or f().foo or (a, b) = (c, d) or (a, b) = (b, a)
     # [hmmm]
-    if(ref($init) eq 'Stupid::FunctionCall') {
+    if(ref($init) eq 'Stupid2::FunctionCall') {
 	print ";\n";
 	$init->emitCallWithLValue($self);
 	return;
@@ -245,6 +266,13 @@ sub Stupid2::Variable::emitArg {
     my $self = shift;
 
     $self->{type}->emitArg($self->{name});
+}
+
+sub Stupid2::Variable::emitPointer {
+    my $self = shift;
+
+    $self->{type}->emitPointer() if !$self->{isReturn};
+    print $self->{name};
 }
 
 sub Stupid2::ArrayRef::emitParameter {
