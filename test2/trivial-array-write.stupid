@@ -1,0 +1,8 @@
+"EXPECT:";
+
+function () test() {
+
+array(int_8u, 1) k = [ 66 ];
+
+k[0] = 65;
+}
