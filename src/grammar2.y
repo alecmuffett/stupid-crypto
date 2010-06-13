@@ -20,19 +20,19 @@ toplevel : comment ';'
 	;
 
 struct_decl :	'struct' WORD '(' abstract_decl_list ')' ';'
-	    { new Stupid::Type::Struct($::Context, $_[2], $_[4]); }
+	    { new Stupid2::Type::Struct($::Context, $_[2], $_[4]); }
 	;
 
 abstract_decl_list : abstract_decl_list ',' abstract_decl
 	    { $_[1]->appendAbstractDecl($_[3]); $_[1]; }
 	| abstract_decl
-	    { my $t = new Stupid::AbstractDeclList();
+	    { my $t = new Stupid2::AbstractDeclList();
 	      $t->appendAbstractDecl($_[1]);
 	      $t; }
 	;
 
 abstract_decl :	type vardecl
-	    { new Stupid::AbstractDeclare($_[1], $_[2]); }
+	    { new Stupid2::AbstractDeclare($_[1], $_[2]); }
 	;
 
 function :	'function' '(' arglist ')' WORD '(' arglist ')'
@@ -149,7 +149,7 @@ var	:	WORD
 	|	var '[' expr ']'
 	    { new Stupid2::ArrayRef($_[1], $_[3]); }
 	|	expr '.' WORD
-	    { new Stupid::MemberRef($_[1], $_[3]); }
+	    { new Stupid2::MemberRef($_[1], $_[3]); }
 	|	call
 	;
 
@@ -170,7 +170,7 @@ type	:	'int' '_' bitwidth
 	|	'array' '(' type ',' VALUE ')'
 	    { new Stupid2::Type::Array($_[3], $_[5]); }
 	|	'struct' WORD
-	    { new Stupid::Type::StructInstance($::Context, $_[2]); }
+	    { new Stupid2::Type::StructInstance($::Context, $_[2]); }
 	;
 
 bitwidth :      VALUE

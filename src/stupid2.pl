@@ -245,9 +245,11 @@ sub new {
     return $self;
 }
 
-sub getArrayElementWidth {
+sub getElementWidth {
     my $self = shift;
+    my $member = shift;
 
+    # In the case of arrays, all members are the same size
     return $self->{width};
 }
 
@@ -265,6 +267,46 @@ sub merge {
     $self->{count} = $other->{count} if !defined $self->{count};
     return if !defined $other->{count};
     croak 'Array counts differ' if $self->{count} != $other->{count};
+}
+
+package Stupid2::StructWidth;
+
+use strict;
+use Carp;
+
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless $self, $class;
+
+    $self->{width} = [];
+
+    return $self;
+}
+
+sub merge {
+    my $self = shift;
+    my $other = shift;
+
+    croak ref($other) if ref($other) ne 'Stupid2::StructWidth';
+}
+
+sub maybeSetElementWidth {
+    my $self = shift;
+    my $n = shift;
+    my $width = shift;
+
+    return if !defined $width;
+    $self->{width}->[$n] = $width if !defined $self->{width}->[$n];
+    $self->{width}->[$n]->merge($width);
+}
+
+sub getElementWidth {
+    my $self = shift;
+    my $n = shift;
+
+    return $self->{width}->[$n];
 }
 
 package Stupid2::HasWidth;
@@ -313,7 +355,8 @@ sub setWidth {
     }
 
     confess ref($width) if ref($width) ne 'Stupid2::Bitwidth'
-	&& ref($width) ne 'Stupid2::ArrayWidth';
+	&& ref($width) ne 'Stupid2::ArrayWidth'
+	&& ref($width) ne 'Stupid2::StructWidth';
 
     if(!defined $self->{width}) {
 	$self->{width} = $width;
@@ -543,9 +586,10 @@ sub deduceWidth {
     }
 }
 
-package Stupid::Type::Struct;
+package Stupid2::Type::Struct;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 
 sub new {
     my $class = shift;
@@ -558,6 +602,7 @@ sub new {
 
     $self->{name} = $name;
     $self->{decls} = $decls;
+    $self->{width} = new Stupid2::StructWidth();
 
     $context->addStruct($self);
 
@@ -571,9 +616,21 @@ sub findMember {
     return $self->{decls}->findDeclaration($name);
 }
 
-package Stupid::Type::StructInstance;
+sub deduceWidth {
+    my $self = shift;
+
+    # Not sure anything below this can do anything useful, but to be safe...
+    $self->{decls}->deduceWidth();
+    # Now populate our widths from the decls...
+    for(my $n = 0 ; my $decl = $self->{decls}->getElement($n) ; ++$n) {
+	$self->{width}->maybeSetElementWidth($n, $decl->maybeWidth());
+    }
+}
+
+package Stupid2::Type::StructInstance;
 
 use strict;
+use base qw(Stupid2::HasWidthWithoutDeduction);
 
 sub new {
     my $class = shift;
@@ -584,6 +641,7 @@ sub new {
     bless $self, $class;
 
     $self->{struct} = $context->findStruct($name);
+    $self->{width} = $self->{struct}->width();
 
     return $self;
 }
@@ -595,9 +653,10 @@ sub findMember {
     return $self->{struct}->findMember($name);
 }
 
-package Stupid::AbstractDeclare;
+package Stupid2::AbstractDeclare;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 
 sub new {
     my $class = shift;
@@ -613,7 +672,20 @@ sub new {
     return $self;
 }
 
-package Stupid::AbstractDeclList;
+sub deduceWidth {
+    my $self = shift;
+
+    $self->{type}->deduceWidth();
+    $self->maybeSetWidth($self->{type}->maybeWidth());
+}
+
+sub setChildrensWidth {
+    my $self = shift;
+
+    $self->{type}->setWidth($self->width());
+}
+
+package Stupid2::AbstractDeclList;
 
 use strict;
 
@@ -645,6 +717,23 @@ sub findDeclaration {
 	return $decl if $decl->{name} eq $name;
     }
     croak "Can't find declaration of $name";
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    # Not sure there's any point to this, but to be safe...
+    foreach my $decl (@{$self->{decls}}) {
+	$decl->deduceWidth();
+    }
+}
+
+sub getElement {
+    my $self = shift;
+    my $n = shift;
+
+    return undef if $n > $#{$self->{decls}};
+    return $self->{decls}->[$n];
 }
 
 package Stupid2::ExprList;
@@ -724,9 +813,10 @@ sub maybeSetWidth {
 #    confess "Setting function call width" if defined $width;
 }
 
-package Stupid::MemberRef;
+package Stupid2::MemberRef;
 
 use strict;
+use base qw(Stupid2::HasWidth);
 
 sub new {
     my $class = shift;
@@ -740,6 +830,18 @@ sub new {
     $self->{member} = $self->{owner}->findMember($member);
 
     return $self;
+}
+
+sub deduceWidth {
+    my $self = shift;
+
+    $self->maybeSetWidth($self->{member}->maybeWidth());
+}
+
+sub setChildrensWidth {
+    my $self = shift;
+
+    $self->{member}->setWidth($self->width());
 }
 
 package Stupid2::Comment;
@@ -1810,8 +1912,10 @@ sub values {
 sub setChildrensWidth {
     my $self = shift;
 
-    my $child_width = $self->{width}->getArrayElementWidth();
+    my $n = 0;
     foreach my $value (@{$self->{values}}) {
+	my $child_width = $self->{width}->getElementWidth($n);
 	$value->setWidth($child_width);
+	++$n;
     }
 }
