@@ -332,6 +332,18 @@ sub Stupid2::MemberRef::emitCode {
     $self->{owner}->emitMemberRef($self->{member});
 }
 
+sub Stupid2::MemberRef::emitCall {
+    my $self = shift;
+
+    $self->emitCode();
+}
+
+sub Stupid2::MemberRef::maybeAddSelf {
+    my $self = shift;
+
+    $self->{owner}->maybeAddSelf();
+}
+
 sub Stupid2::MemberRef::emitLValue {
     my $self = shift;
 
