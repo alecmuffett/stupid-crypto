@@ -2,9 +2,9 @@
 ";
 
 function(ostream o) test() {
-  uint32 a = 0x12345678;
-  uint32 b = 0xfedcba98;
-  uint32 c = 0;
+  int_32u a = 0x12345678;
+  int_32u b = 0xfedcba98;
+  int_32u c = 0;
 
-  c = a plus32 b;
+  c = a + b;
 }
