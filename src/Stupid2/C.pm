@@ -151,6 +151,56 @@ sub Stupid2::Type::Array::emitDeclaration {
       '[', $self->{size}->value(), ']';
 }
 
+sub Stupid2::Type::Struct::emitCode {
+    my $self = shift;
+
+    print "struct $self->{name} {\n";
+    $self->{decls}->emitCode();
+    print "};\n";
+}
+
+sub Stupid2::Type::StructInstance::emitReturnDecl {
+    my $self = shift;
+    my $name = shift;
+
+    print "struct $self->{struct}->{name} *$name";
+}
+
+sub Stupid2::Type::StructInstance::dereference {
+    my $self = shift;
+
+    print '*';
+}
+
+sub Stupid2::Type::StructInstance::emitDeclaration {
+    my $self = shift;
+    my $name = shift;
+
+    print "struct $self->{struct}->{name} $name";
+}
+
+sub Stupid2::Type::StructInstance::emitPointer {
+    my $self = shift;
+
+    print '&';
+}
+
+sub Stupid2::AbstractDeclList::emitCode {
+    my $self = shift;
+
+    foreach my $decl (@{$self->{decls}}) {
+	$decl->emitCode();
+    }
+}
+
+sub Stupid2::AbstractDeclare::emitCode {
+    my $self = shift;
+
+    print '  ';
+    $self->{type}->emitDeclaration($self->{name});
+    print ";\n";
+}
+
 sub Stupid2::Type::Int::typeName {
     my $self = shift;
 
@@ -273,6 +323,20 @@ sub Stupid2::Variable::emitPointer {
 
     $self->{type}->emitPointer() if !$self->{isReturn};
     print $self->{name};
+}
+
+sub Stupid2::MemberRef::emitCode {
+    my $self = shift;
+
+    $self->{owner}->emitCode();
+    $self->{owner}->emitMemberRef($self->{member});
+}
+
+sub Stupid2::MemberRef::emitLValue {
+    my $self = shift;
+
+    $self->{owner}->emitCode();
+    $self->{owner}->emitMemberRef($self->{member});
 }
 
 sub Stupid2::ArrayRef::emitParameter {
