@@ -91,7 +91,7 @@ sub lexer {
     # hex VALUE
     } elsif($code =~ /^0x([0-9a-f]+)(.*)$/s) {
 	$type = 'VALUE';
-	$value = new Stupid::HexValue($1);
+	$value = new Stupid2::HexValue($1);
 	$code = $2;
     # decimal UVALUE
     } elsif($code =~ /^([0-9]+)u(.*)$/s) {
@@ -1740,9 +1740,10 @@ sub setChildrensWidth {
     $self->{type}->setWidth($self->{width});
 }
 
-package Stupid::HexValue;
+package Stupid2::HexValue;
 
 use strict;
+use base qw(Stupid2::HasWidthWithoutDeduction);
 use Math::BigInt;
 
 # Unsigned hex value, any length
@@ -1750,11 +1751,13 @@ use Math::BigInt;
 sub new {
     my $class = shift;
     my $value = shift;
+    my $width = shift;
 
     my $self = {};
     bless $self, $class;
 
     $self->{value} = new Math::BigInt("0x$value");
+    $self->setWidth($width);
 
     return $self;
 }

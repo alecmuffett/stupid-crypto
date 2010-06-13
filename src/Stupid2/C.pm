@@ -316,6 +316,12 @@ sub Stupid2::DecimalValue::emitParameter {
     $self->emitCode();
 }
 
+sub Stupid2::HexValue::emitCode {
+    my $self = shift;
+
+    print $self->{value}->as_hex(), 'U';
+}
+
 sub Stupid2::Eq::emitCode {
     my $self = shift;
 
